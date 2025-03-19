@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Example Application using C2C Widget</title>
+  </head>
+  <body>
+    <!-- ChatGPT generated sample page -->
+    <header style="background: #007bff; color: white; padding: 20px">
+      <h1>Awesome Product</h1>
+      <p>The best solution for your needs</p>
+    </header>
+
+    <section style="padding: 40px">
+      <h2>Features</h2>
+      <p>✔ High quality<br />✔ Affordable price<br />✔ Easy to use</p>
+      <p>✔ High quality<br />✔ Affordable price<br />✔ Easy to use</p>
+      <p>✔ High quality<br />✔ Affordable price<br />✔ Easy to use</p>
+      <p>✔ High quality<br />✔ Affordable price<br />✔ Easy to use</p>
+      <p>✔ High quality<br />✔ Affordable price<br />✔ Easy to use</p>
+      <p>✔ High quality<br />✔ Affordable price<br />✔ Easy to use</p>
+    </section>
+
+    <section style="padding: 20px; background: #f8f9fa">
+      <h2>Pricing</h2>
+      <p>Only $29.99</p>
+      <button
+        style="
+          padding: 10px 20px;
+          background: #28a745;
+          color: white;
+          border: none;
+          cursor: pointer;
+        "
+      >
+        Buy Now
+      </button>
+    </section>
+
+    <footer
+      style="background: #343a40; color: white; padding: 10px; margin-top: 20px"
+    >
+      <p>&copy; 2025 Awesome Product. All rights reserved.</p>
+    </footer>
+    <!-- End ChatGPT generated sample page -->
+
+    <!-- The code required to initialize the c2c widget. The button can be styled as you like and placed wherever you like.  -->
+    <button
+      id="callButton"
+      style="
+        position: fixed;
+        height: 70px;
+        width: 70px;
+        bottom: 50px;
+        right: 50px;
+      "
+    >
+      Call
+    </button>
+
+    <c2c-widget
+      buttonId="callButton"
+      callDetails='{"destination":"/private/demo-1","supportsVideo":true,"supportsAudio":true}'
+    ></c2c-widget>
+
+    <script type="module" src="/src/index.ts"></script>
+    <!-- end code required to initialize c2c widget -->
+  </body>
+</html>

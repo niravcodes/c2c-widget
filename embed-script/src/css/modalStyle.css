@@ -1,0 +1,75 @@
+.modal-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal {
+  position: relative;
+  background: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 1200px;
+  max-height: 90vh;
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  overflow: hidden;
+}
+
+.video-panel {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%;
+}
+
+.video-panel iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.video-controls {
+  height: 50px;
+}
+
+.chat-panel {
+  background: #f5f5f5;
+  border-radius: 4px;
+  overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+  .modal {
+    width: calc(100% - 40px);
+    height: calc(100% - 40px);
+    margin: 20px;
+    max-height: none;
+    max-width: none;
+  }
+
+  @media (orientation: portrait) {
+    .modal {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto 1fr;
+    }
+
+    .video-panel {
+      /* padding-top: calc(56.25% + 50px); */
+    }
+  }
+
+  @media (orientation: landscape) {
+    .modal {
+      grid-template-columns: 1fr 250px;
+    }
+  }
+}
