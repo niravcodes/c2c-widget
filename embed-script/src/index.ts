@@ -3,6 +3,8 @@ import { Call } from "./Call";
 import modalStyle from "./css/modalStyle.css?inline";
 import createControls from "./ui/controls.ui.ts";
 import html from "./lib/html";
+import { ChatState } from "./Chat.ts";
+import createChatUI from "./ui/chat.ui.ts";
 
 export interface CallDetails {
   destination: string;
@@ -88,39 +90,6 @@ class C2CWidget extends HTMLElement {
     );
     const callInstance = await this.call?.dial(videoArea, onChatChange);
 
-    // AI partial result (typing indicator)
-    callInstance?.on("ai.partial_result", (params) => {
-      console.log("ai.partial_result", params.text);
-      // this.logger.event('ai.partial_result', params.text);
-      // this.events.emit(EventRegistry.SIGNALWIRE.CHAT_PARTIAL, params.text);
-    });
-
-    // AI speech detection (user speaking)
-    callInstance?.on("ai.speech_detect", (params) => {
-      const cleanText = params.text.replace(/\{confidence=[\d.]+\}/, "");
-      console.log("ai.speech_detect", cleanText);
-      // this.logger.event('ai.speech_detect', cleanText);
-      // this.events.emit(EventRegistry.SIGNALWIRE.CHAT_SPEECH, cleanText);
-    });
-
-    // AI completion (final response)
-    callInstance?.on("ai.completion", (params) => {
-      console.log("ai.completion", params.text);
-      // this.logger.event('ai.completion', params.text);
-      // this.events.emit(EventRegistry.SIGNALWIRE.CHAT_COMPLETION, params.text);
-    });
-
-    // AI response utterance (spoken response)
-    callInstance?.on("ai.response_utterance", (params) => {
-      console.log("ai.response_utterance", params.utterance);
-      // this.logger.event('ai.response_utterance', params.utterance);
-      // if (params.utterance) {
-      //   this.events.emit(EventRegistry.SIGNALWIRE.CHAT_UTTERANCE, params.utterance);
-      // }
-    });
-
-    callInstance?.start();
-
     callInstance?.on("call.joined", () => {
       console.log("call.joined");
       if (callInstance?.localStream) {
@@ -135,8 +104,12 @@ class C2CWidget extends HTMLElement {
       }
     });
 
-    function onChatChange(chatState: unknown) {
+    function onChatChange(chatState: ChatState) {
       // renderChat();
+      const { chatContainer } = createChatUI(chatState);
+      chatPanel.innerHTML = "";
+      chatPanel.appendChild(chatContainer);
+      console.log("chatState", chatState);
     }
 
     controlsPanel.appendChild(control);

@@ -17,6 +17,7 @@
   width: 90%;
   max-width: 1200px;
   max-height: 90vh;
+
   display: grid;
   grid-template-columns: 1fr 300px;
   overflow: hidden;
