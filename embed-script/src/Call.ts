@@ -19,7 +19,10 @@ export class Call {
     });
   }
 
-  async dial(container: HTMLElement) {
+  async dial(
+    container: HTMLElement,
+    onChatChange: (chatState: ChatState) => void
+  ) {
     if (!this.client) {
       throw new Error("Client is not set");
     }
@@ -34,10 +37,11 @@ export class Call {
       video: this.callDetails.supportsVideo,
       negotiateVideo: this.callDetails.supportsVideo,
     });
-    const dialedCall = currentCall.start();
+    // const dialedCall = currentCall.start();
 
-    console.log(currentCall);
-    console.log(dialedCall);
+    // currentCall.on("", onChatChange);
+
+    console.log("currentCall", currentCall);
 
     return currentCall;
   }

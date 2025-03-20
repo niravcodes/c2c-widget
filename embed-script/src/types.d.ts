@@ -15,3 +15,15 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+declare const html: (
+  strings: TemplateStringsArray,
+  ...values: any[]
+) => Record<string, HTMLElement>;
+
+declare module "*.html.ts" {
+  const template: () =>
+    | Record<string, HTMLElement>
+    | { [key: string]: () => Record<string, HTMLElement> };
+  export default template;
+}

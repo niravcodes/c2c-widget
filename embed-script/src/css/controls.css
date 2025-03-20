@@ -2,7 +2,6 @@
   display: flex;
   gap: 8px;
   background: rgba(0, 0, 0, 0.8);
-  border-radius: 8px;
   height: 50px;
 
   justify-content: center;
@@ -41,8 +40,7 @@
 }
 
 .device-menu {
-  position: absolute;
-  bottom: 60px;
+  position: fixed;
   background: rgba(0, 0, 0, 0.9);
   border-radius: 8px;
   padding: 8px;
@@ -50,8 +48,10 @@
 }
 
 .device-option {
+  font-size: 15px;
+  font-family: sans-serif;
   color: white;
-  padding: 8px;
+  padding: 6px 4px;
   cursor: pointer;
   border-radius: 4px;
 }

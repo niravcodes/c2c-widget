@@ -25,20 +25,37 @@
 .video-panel {
   position: relative;
   width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.video-area {
+  position: relative;
+  width: 100%;
   padding-top: 56.25%;
 }
 
-.video-panel iframe {
+.local-video-content {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  height: 130px;
+  overflow: hidden;
+  border-radius: 4px;
+  border: 1px solid white;
+}
+
+.video-content {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  object-fit: contain;
 }
 
 .video-controls {
   height: 50px;
+  width: 100%;
 }
 
 .chat-panel {
@@ -60,10 +77,6 @@
     .modal {
       grid-template-columns: 1fr;
       grid-template-rows: auto 1fr;
-    }
-
-    .video-panel {
-      /* padding-top: calc(56.25% + 50px); */
     }
   }
 
