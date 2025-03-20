@@ -19,27 +19,31 @@ export class Call {
       token: import.meta.env.VITE_PUBLIC_TOKEN,
     });
 
-    // AI partial result (typing indicator)
+    // @ts-ignore
     this.client.on("ai.partial_result", (params) => {
+      // AI partial result (typing indicator)
       console.log("ai.partial_result", params.text);
       this.chat.handleEvent("ai.partial_result", params.text);
     });
 
-    // AI speech detection (user speaking)
+    // @ts-ignore
     this.client.on("ai.speech_detect", (params) => {
+      // AI speech detection (user speaking)
       const cleanText = params.text.replace(/\{confidence=[\d.]+\}/, "");
       console.log("ai.speech_detect", cleanText);
       this.chat.handleEvent("ai.speech_detect", cleanText);
     });
 
-    // AI completion (final response)
+    // @ts-ignore
     this.client.on("ai.completion", (params) => {
+      // AI completion (final response)
       console.log("ai.completion", params.text);
       this.chat.handleEvent("ai.completion", params.text);
     });
 
-    // AI response utterance (spoken response)
+    // @ts-ignore
     this.client.on("ai.response_utterance", (params) => {
+      // AI response utterance (spoken response)
       console.log("ai.response_utterance", params.utterance);
       this.chat.handleEvent("ai.response_utterance", params.utterance);
     });
@@ -63,7 +67,7 @@ export class Call {
       video: this.callDetails.supportsVideo,
       negotiateVideo: this.callDetails.supportsVideo,
     });
-    // const dialedCall = currentCall.start();
+    const dialedCall = currentCall.start();
 
     this.chat.onUpdate = () => {
       onChatChange(this.chat.state);

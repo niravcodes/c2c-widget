@@ -1,6 +1,6 @@
 import modal from "./ui/modal.html.ts";
 import { Call } from "./Call";
-import modalStyle from "./css/modalStyle.css?inline";
+
 import createControls from "./ui/controls.ui.ts";
 import html from "./lib/html";
 import { ChatState } from "./Chat.ts";
@@ -116,10 +116,6 @@ class C2CWidget extends HTMLElement {
   }
 
   setupDOM() {
-    const style = document.createElement("style");
-    style.textContent = modalStyle;
-    this.shadow.appendChild(style);
-
     const container = document.createElement("div");
     this.shadow.appendChild(container);
     this.containerElement = container;

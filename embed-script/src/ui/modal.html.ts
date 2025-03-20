@@ -1,7 +1,11 @@
 import html from "../lib/html";
+import modalStyle from "../css/modalStyle.css?inline";
 
 export default html`
   <div class="modal-container" name="modalContainer">
+    <style>
+      ${modalStyle}
+    </style>
     <div class="modal">
       <div class="video-panel">
         <div class="video-area">

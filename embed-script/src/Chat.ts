@@ -61,7 +61,7 @@ export class ChatState {
 
 // note: these four things should probably be modeled as a fsm?
 export class Chat {
-  private state: ChatState;
+  state: ChatState;
 
   constructor() {
     this.state = new ChatState();
