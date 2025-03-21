@@ -3,7 +3,7 @@ import { Call } from "./Call";
 
 import createControls from "./ui/controls.ui.ts";
 import html from "./lib/html";
-import { ChatState } from "./Chat.ts";
+import { ChatEntry } from "./Chat.ts";
 import createChatUI from "./ui/chat.ui.ts";
 
 export interface CallDetails {
@@ -104,12 +104,21 @@ class C2CWidget extends HTMLElement {
       }
     });
 
-    function onChatChange(chatState: ChatState) {
-      // renderChat();
-      const { chatContainer } = createChatUI(chatState);
+    function onChatChange(chatHistory: ChatEntry[]) {
+      const chatPanelScrolledToBottom =
+        chatPanel.scrollHeight - chatPanel.clientHeight <=
+        chatPanel.scrollTop + 1;
+      const previousScrollTop = chatPanel.scrollTop;
+
+      const { chatContainer } = createChatUI(chatHistory);
       chatPanel.innerHTML = "";
       chatPanel.appendChild(chatContainer);
-      console.log("chatState", chatState);
+
+      if (chatPanelScrolledToBottom) {
+        chatPanel.scrollTop = chatPanel.scrollHeight;
+      } else {
+        chatPanel.scrollTop = previousScrollTop;
+      }
     }
 
     controlsPanel.appendChild(control);

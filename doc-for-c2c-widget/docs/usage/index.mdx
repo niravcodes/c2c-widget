@@ -1,0 +1,31 @@
+# Usage
+
+Vite builds the widget into a single js file at location `dist/widget.js`.
+
+To use the widget, you need to include the js file in your project.
+
+As an example inclusion, consider the following html fragment:
+
+```html
+<!-- place and style this button arbitrarily, but it's id should match the buttonId in the c2c-widget tag below -->
+<button
+  id="callButton"
+  style="
+        position: fixed;
+        height: 70px;
+        width: 70px;
+        bottom: 50px;
+        right: 50px;
+      "
+>
+  Call
+</button>
+
+<c2c-widget
+  buttonId="callButton"
+  callDetails='{"destination":"/private/demo-1","supportsVideo":true,"supportsAudio":true}'
+></c2c-widget>
+
+<script src="/widget.js"></script>
+<!-- end code required to initialize c2c widget -->
+```

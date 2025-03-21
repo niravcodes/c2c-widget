@@ -1,6 +1,6 @@
 import { SignalWire, SignalWireClient } from "@signalwire/js";
 import { CallDetails } from ".";
-import { Chat, ChatState } from "./Chat";
+import { Chat, ChatEntry } from "./Chat";
 export class Call {
   private client: SignalWireClient | null = null;
   private callDetails: CallDetails | null = null;
@@ -21,37 +21,56 @@ export class Call {
 
     // @ts-ignore
     this.client.on("ai.partial_result", (params) => {
+      console.log(params);
       // AI partial result (typing indicator)
       console.log("ai.partial_result", params.text);
-      this.chat.handleEvent("ai.partial_result", params.text);
+      this.chat.handleEvent(
+        "ai.partial_result",
+        params.text ?? "",
+        params.barged ?? false
+      );
     });
 
     // @ts-ignore
     this.client.on("ai.speech_detect", (params) => {
+      console.log(params);
       // AI speech detection (user speaking)
       const cleanText = params.text.replace(/\{confidence=[\d.]+\}/, "");
       console.log("ai.speech_detect", cleanText);
-      this.chat.handleEvent("ai.speech_detect", cleanText);
+      this.chat.handleEvent(
+        "ai.speech_detect",
+        cleanText,
+        params.type !== "normal" // this also doesn't seem to have type=barged, but leaving here for now
+      );
     });
 
     // @ts-ignore
     this.client.on("ai.completion", (params) => {
+      console.log(params);
       // AI completion (final response)
-      console.log("ai.completion", params.text);
-      this.chat.handleEvent("ai.completion", params.text);
+      this.chat.handleEvent(
+        "ai.completion",
+        params.text ?? "",
+        params.type === "barged"
+      );
     });
 
     // @ts-ignore
     this.client.on("ai.response_utterance", (params) => {
+      console.log(params);
       // AI response utterance (spoken response)
       console.log("ai.response_utterance", params.utterance);
-      this.chat.handleEvent("ai.response_utterance", params.utterance);
+      this.chat.handleEvent(
+        "ai.response_utterance",
+        params.utterance ?? "",
+        false // this doesn't have barged yet
+      );
     });
   }
 
   async dial(
     container: HTMLElement,
-    onChatChange: (chatState: ChatState) => void
+    onChatChange: (chatHistory: ChatEntry[]) => void
   ) {
     if (!this.client) {
       throw new Error("Client is not set");
@@ -67,13 +86,11 @@ export class Call {
       video: this.callDetails.supportsVideo,
       negotiateVideo: this.callDetails.supportsVideo,
     });
-    const dialedCall = currentCall.start();
+    currentCall.start();
 
     this.chat.onUpdate = () => {
-      onChatChange(this.chat.state);
+      onChatChange(this.chat.getHistory());
     };
-
-    // currentCall.on("", onChatChange);
 
     console.log("currentCall", currentCall);
 

@@ -17,15 +17,11 @@
   width: 90%;
   max-width: 1200px;
   max-height: 90vh;
-
-  display: grid;
-  grid-template-columns: 1fr 300px;
-  overflow: hidden;
 }
 
 .video-panel {
   position: relative;
-  width: 100%;
+  width: calc(100% - 300px);
   display: flex;
   flex-direction: column;
 }
@@ -44,6 +40,7 @@
   overflow: hidden;
   border-radius: 4px;
   border: 1px solid white;
+  max-height: 40%;
 }
 
 .video-content {
@@ -60,6 +57,11 @@
 }
 
 .chat-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 300px;
   background: #f5f5f5;
   border-radius: 4px;
   overflow-y: auto;
@@ -72,6 +74,18 @@
     margin: 20px;
     max-height: none;
     max-width: none;
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    overflow: hidden;
+  }
+
+  .video-panel {
+    width: 100%;
+  }
+
+  .chat-panel {
+    position: static;
+    width: auto;
   }
 
   @media (orientation: portrait) {

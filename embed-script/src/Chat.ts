@@ -1,4 +1,4 @@
-interface ChatEntry {
+export interface ChatEntry {
   type: "ai" | "user";
   text: string;
   state: "partial" | "complete";
@@ -6,53 +6,7 @@ interface ChatEntry {
 
 export class ChatState {
   entries: ChatEntry[] = [];
-
-  private getLastEntry(): ChatEntry | undefined {
-    return this.entries[this.entries.length - 1];
-  }
-
-  addPartialAIResponse(text: string) {
-    const lastEntry = this.getLastEntry();
-
-    if (lastEntry?.type === "ai" && lastEntry.state === "partial") {
-      lastEntry.text += " " + text;
-    } else {
-      this.entries.push({ type: "ai", text, state: "partial" });
-    }
-  }
-
-  completeAIResponse(text: string) {
-    const lastEntry = this.getLastEntry();
-    if (lastEntry?.type === "ai" && lastEntry.state === "partial") {
-      lastEntry.text = text;
-      lastEntry.state = "complete";
-    } else if (lastEntry?.type === "ai" && lastEntry.state === "complete") {
-      return; // Ignore duplicate completion
-    } else {
-      this.entries.push({ type: "ai", text, state: "complete" });
-    }
-  }
-
-  updatePartialUserText(text: string) {
-    const lastEntry = this.getLastEntry();
-
-    if (lastEntry?.type === "user" && lastEntry.state === "partial") {
-      lastEntry.text = text;
-    } else {
-      this.entries.push({ type: "user", text, state: "partial" });
-    }
-  }
-
-  completeUserText(text: string) {
-    const lastEntry = this.getLastEntry();
-
-    if (lastEntry?.type === "user") {
-      lastEntry.text = text;
-      lastEntry.state = "complete";
-    } else {
-      this.entries.push({ type: "user", text, state: "complete" });
-    }
-  }
+  lastSpoken: "ai" | "user" | null = null;
 }
 
 // Chat class takes all the chat related events
@@ -63,8 +17,31 @@ export class ChatState {
 export class Chat {
   state: ChatState;
 
+  aiPartialResult: ChatEntry | null = null;
+  userPartialResult: ChatEntry | null = null;
+
   constructor() {
     this.state = new ChatState();
+  }
+
+  getHistory(): ChatEntry[] {
+    const history = [...this.state.entries];
+
+    if (this.aiPartialResult && this.userPartialResult) {
+      if (this.state.lastSpoken === "user") {
+        history.push(this.aiPartialResult);
+        history.push(this.userPartialResult);
+      } else {
+        history.push(this.userPartialResult);
+        history.push(this.aiPartialResult);
+      }
+    } else if (this.aiPartialResult) {
+      history.push(this.aiPartialResult);
+    } else if (this.userPartialResult) {
+      history.push(this.userPartialResult);
+    }
+
+    return history;
   }
 
   handleEvent(
@@ -73,17 +50,48 @@ export class Chat {
       | "ai.completion"
       | "ai.partial_result"
       | "ai.speech_detect",
-    text: string
+    text: string,
+    barged: boolean
   ) {
-    if (event === "ai.response_utterance") {
-      this.state.addPartialAIResponse(text);
-    } else if (event === "ai.completion") {
-      this.state.completeAIResponse(text);
-    } else if (event === "ai.partial_result") {
-      this.state.updatePartialUserText(text);
-    } else if (event === "ai.speech_detect") {
-      this.state.completeUserText(text);
+    switch (event) {
+      case "ai.response_utterance":
+        if (!this.aiPartialResult) {
+          this.aiPartialResult = { type: "ai", text, state: "partial" };
+        } else {
+          this.aiPartialResult.text += text;
+        }
+        this.state.lastSpoken = "ai";
+        break;
+
+      case "ai.completion":
+        if (this.aiPartialResult) {
+          this.state.entries.push({
+            ...this.aiPartialResult,
+            state: "complete",
+          });
+          this.aiPartialResult = null;
+        }
+        this.state.lastSpoken = barged ? "user" : "ai";
+        break;
+
+      case "ai.partial_result":
+        this.userPartialResult = { type: "user", text, state: "partial" };
+        this.state.lastSpoken = "user";
+        break;
+
+      case "ai.speech_detect":
+        if (this.userPartialResult) {
+          this.state.entries.push({
+            ...this.userPartialResult,
+            state: "complete",
+            text,
+          });
+          this.userPartialResult = null;
+        }
+        this.state.lastSpoken = "user";
+        break;
     }
+
     this.onUpdate();
   }
 

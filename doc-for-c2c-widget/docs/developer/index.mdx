@@ -1,0 +1,13 @@
+# Development Notes
+
+This folder is an assortment of notes and logs for developers working on the C2C widget.
+
+## Vague Conventions
+
+1. style files in `src/css`, generally one file per component. Styles should be imported inline (`import chatStyle from './chat.css?raw'`)
+2. util functions in `src/lib`
+3. UI elements in `src/ui`
+4. UI HTML elements as `<name>.html.ts`, and it should export default `html` function.
+5. UI elements with HTML+Logic and interacivity as `<name>.ui.ts`
+6. SVG icons in `src/icons`
+7. Icons should be imported raw (`import icon from './path/to/icon.svg?raw'`), and then used as `<div innerHTML={icon} />`.

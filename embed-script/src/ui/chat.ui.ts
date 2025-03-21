@@ -1,9 +1,9 @@
-import { ChatState } from "../Chat";
+import { ChatEntry } from "../Chat";
 import styles from "../css/chat.css?inline";
 import html from "../lib/html";
 
-export default function createChatUI(chatState: ChatState) {
-  const messages = chatState.entries
+export default function createChatUI(chatHistory: ChatEntry[]) {
+  const messages = chatHistory
     .map((entry) => {
       const messageClass =
         entry.type === "user" ? "message-sent" : "message-received";
