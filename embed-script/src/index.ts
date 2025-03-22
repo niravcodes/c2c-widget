@@ -1,10 +1,12 @@
-import modal from "./ui/modal.html.ts";
+import modal from "./ui/modal.ui.ts";
+import loadingUI from "./ui/loading.html.ts";
 import { Call } from "./Call";
 
 import createControls from "./ui/controls.ui.ts";
 import html from "./lib/html";
 import { ChatEntry } from "./Chat.ts";
 import createChatUI from "./ui/chat.ui.ts";
+import { style } from "./Style";
 
 export interface CallDetails {
   destination: string;
@@ -14,14 +16,18 @@ export interface CallDetails {
 
 class C2CWidget extends HTMLElement {
   callOngoing: boolean = false;
+  callLoading: boolean = false;
   shadow = this.attachShadow({ mode: "open" });
   callDetails: CallDetails | null = null;
   call: Call | null = null;
   containerElement: HTMLElement | null = null;
+  modalContainer: HTMLElement | null = null;
+  previousOverflowStyle: string = "";
 
   constructor() {
     super();
     this.setupDOM();
+    style.apply(this.shadow);
   }
 
   connectedCallback() {
@@ -51,6 +57,27 @@ class C2CWidget extends HTMLElement {
     }
   }
 
+  private openModal() {
+    this.previousOverflowStyle = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+  }
+
+  private closeModal() {
+    if (this.modalContainer) {
+      const modal = this.modalContainer.querySelector(".modal");
+      this.modalContainer.classList.add("closing");
+      modal?.classList.add("closing");
+
+      setTimeout(() => {
+        this.modalContainer?.remove();
+        this.modalContainer = null;
+        document.body.style.overflow = this.previousOverflowStyle;
+        this.callOngoing = false;
+        this.call?.hangup();
+      }, 800);
+    }
+  }
+
   async setupCall() {
     if (this.callOngoing) {
       console.warn("Call is already ongoing; nop");
@@ -61,23 +88,24 @@ class C2CWidget extends HTMLElement {
     }
 
     this.callOngoing = true;
+    this.callLoading = true;
+    this.openModal();
 
     const {
       modalContainer,
+      videoPanel,
       videoArea,
       localVideoArea,
       controlsPanel,
       chatPanel,
     } = modal();
 
+    this.modalContainer = modalContainer;
+    this.renderLoading(this.callLoading, videoPanel);
     this.containerElement?.appendChild(modalContainer);
 
-    // note: we are awaiting this because this fn waits for
-    // permissions and device list.
     const control = await createControls(
-      function hangup() {
-        callInstance?.hangup();
-      },
+      () => this.closeModal(),
       function onVideoDeviceSelect(deviceId: string) {
         callInstance?.updateCamera({ deviceId });
       },
@@ -104,6 +132,11 @@ class C2CWidget extends HTMLElement {
       }
     });
 
+    callInstance?.on("room.left", () => {
+      this.closeModal();
+    });
+
+    // todo: this logic should be in the chat ui component
     function onChatChange(chatHistory: ChatEntry[]) {
       const chatPanelScrolledToBottom =
         chatPanel.scrollHeight - chatPanel.clientHeight <=
@@ -122,12 +155,29 @@ class C2CWidget extends HTMLElement {
     }
 
     controlsPanel.appendChild(control);
+
+    await this.call?.start();
+    this.callLoading = false;
+    this.renderLoading(this.callLoading, videoPanel);
+  }
+
+  renderLoading(loadingState: boolean, element: HTMLElement) {
+    if (loadingState) {
+      const { loading } = loadingUI();
+      element.appendChild(loading);
+    } else {
+      element.querySelector(".loading")?.remove();
+    }
   }
 
   setupDOM() {
     const container = document.createElement("div");
     this.shadow.appendChild(container);
     this.containerElement = container;
+  }
+
+  disconnectedCallback() {
+    this.closeModal();
   }
 }
 
