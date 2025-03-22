@@ -140,20 +140,7 @@ export default class C2CWidget extends HTMLElement {
 
     // todo: this logic should be in the chat ui component
     function onChatChange(chatHistory: ChatEntry[]) {
-      const chatPanelScrolledToBottom =
-        chatPanel.scrollHeight - chatPanel.clientHeight <=
-        chatPanel.scrollTop + 1;
-      const previousScrollTop = chatPanel.scrollTop;
-
-      const { chatContainer } = createChatUI(chatHistory);
-      chatPanel.innerHTML = "";
-      chatPanel.appendChild(chatContainer);
-
-      if (chatPanelScrolledToBottom) {
-        chatPanel.scrollTop = chatPanel.scrollHeight;
-      } else {
-        chatPanel.scrollTop = previousScrollTop;
-      }
+      createChatUI(chatHistory, chatPanel);
     }
 
     controlsPanel.appendChild(control);
