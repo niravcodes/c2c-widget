@@ -1,6 +1,9 @@
 import { ChatEntry } from "../Chat";
 import styles from "../css/chat.css?inline";
 import html from "../lib/html";
+import { style } from "../Style";
+
+style.register(styles);
 
 export default function createChatUI(chatHistory: ChatEntry[]) {
   const messages = chatHistory
@@ -12,13 +15,8 @@ export default function createChatUI(chatHistory: ChatEntry[]) {
     .join("");
 
   const { chatContainer } = html`
-    <div name="chatContainer">
-      <style>
-        ${styles}
-      </style>
-      <div class="chat">
-        <div class="chat-messages">${messages}</div>
-      </div>
+    <div name="chatContainer" class="chat-container">
+      <div class="chat">${messages}</div>
     </div>
   `();
 
