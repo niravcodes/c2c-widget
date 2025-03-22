@@ -58,7 +58,7 @@ export class Chat {
         if (!this.aiPartialResult) {
           this.aiPartialResult = { type: "ai", text, state: "partial" };
         } else {
-          this.aiPartialResult.text += text;
+          this.aiPartialResult.text += " " + text;
         }
         this.state.lastSpoken = "ai";
         break;
