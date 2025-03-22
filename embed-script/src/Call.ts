@@ -1,5 +1,5 @@
 import { SignalWire, SignalWireClient } from "@signalwire/js";
-import { CallDetails } from ".";
+import { CallDetails } from "./C2CWidget";
 import { Chat, ChatEntry } from "./Chat";
 export class Call {
   private client: SignalWireClient | null = null;
@@ -7,18 +7,15 @@ export class Call {
   chat: Chat | null = null;
   currentCall: Call | null = null;
 
-  constructor(callDetails: CallDetails) {
+  constructor(callDetails: CallDetails, token: string) {
     this.callDetails = callDetails;
-    this.setupClient();
+    this.setupClient(token);
     this.chat = new Chat();
   }
 
-  async setupClient() {
-    if (!import.meta.env.VITE_PUBLIC_TOKEN) {
-      throw new Error("PUBLIC_TOKEN env variable is not set");
-    }
+  async setupClient(token: string) {
     this.client = await SignalWire({
-      token: import.meta.env.VITE_PUBLIC_TOKEN,
+      token: token,
     });
 
     // @ts-ignore
