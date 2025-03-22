@@ -62,8 +62,13 @@ export default class DeviceMenu {
 
     this.buttonRect = rect;
     const menuRect = this.currentMenu.getBoundingClientRect();
-    const left = rect.left + rect.width / 2 - menuRect.width / 2;
-    const bottom = window.innerHeight - rect.top + 10;
+    const containerRect =
+      this.menuContainer.parentElement?.getBoundingClientRect() ||
+      new DOMRect();
+
+    const left =
+      rect.left - containerRect.left + rect.width / 2 - menuRect.width / 2;
+    const bottom = containerRect.height - (rect.top - containerRect.top) + 10;
 
     this.currentMenu.style.left = `${left}px`;
     this.currentMenu.style.bottom = `${bottom}px`;
