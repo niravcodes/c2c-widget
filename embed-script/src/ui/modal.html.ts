@@ -1,13 +1,15 @@
 import html from "../lib/html";
 import modalStyle from "../css/modalStyle.css?inline";
 
+import { style } from "../Style";
+
+style.register(modalStyle);
+
 export default html`
   <div class="modal-container" name="modalContainer">
-    <style>
-      ${modalStyle}
-    </style>
-    <div class="modal">
-      <div class="video-panel">
+    <div class="modal" name="modal">
+      <div class="video-panel" name="videoPanel">
+        <div class="video-panel-background" name="videoPanelBackground"></div>
         <div class="video-area">
           <div class="video-content" name="videoArea">
             <!-- Remote Video area -->
