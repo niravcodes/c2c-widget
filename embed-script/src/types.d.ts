@@ -22,8 +22,7 @@ declare const html: (
 ) => Record<string, HTMLElement>;
 
 declare module "*.html.ts" {
-  const template: () =>
-    | Record<string, HTMLElement>
-    | { [key: string]: () => Record<string, HTMLElement> };
+  const template: () => Record<string, HTMLElement>;
+
   export default template;
 }

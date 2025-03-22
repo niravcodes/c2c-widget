@@ -5,6 +5,8 @@
   display: flex;
   flex-direction: column;
   padding: 15px;
+  font-family: var(--font);
+  font-size: 14px;
 }
 
 .message {
@@ -12,15 +14,15 @@
   padding: 8px 12px;
   border-radius: 8px;
   max-width: 80%;
+  color: white;
 }
 
 .message-received {
-  background: #f1f0f0;
+  background: var(--accent-pink);
   align-self: flex-start;
 }
 
 .message-sent {
-  background: #007bff;
-  color: white;
+  background: var(--accent-blue);
   align-self: flex-end;
 }
