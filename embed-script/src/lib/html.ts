@@ -26,16 +26,16 @@ function html(
     ""
   );
   return function () {
-    const container = document.createElement("div");
-    container.innerHTML = template;
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(template, "text/html");
 
-    if (!container.innerHTML) {
+    if (!doc.body.firstChild) {
       throw new Error("Invalid HTML template");
     }
 
     const elements: Record<string, HTMLElement> = {};
 
-    container.querySelectorAll("[name]").forEach((el) => {
+    doc.body.querySelectorAll("[name]").forEach((el) => {
       const name = el.getAttribute("name");
       if (name) {
         elements[name] = el as HTMLElement;
@@ -44,8 +44,8 @@ function html(
     });
 
     const fragment = document.createDocumentFragment();
-    while (container.firstChild) {
-      fragment.appendChild(container.firstChild);
+    while (doc.body.firstChild) {
+      fragment.appendChild(doc.body.firstChild);
     }
 
     return elements;
