@@ -1,10 +1,10 @@
 import html from "../lib/html";
-import variables from "../css/variables.css?inline";
-import modalStyle from "../css/modalStyle.css?inline";
 import { style } from "../Style";
+import globalcss from "../css/index.scss?inline";
 
-style.register(variables);
-style.register(modalStyle);
+// We are registering global css here, somewhat arbitrarily.
+// Nowhere else will we be importing css or registering styles.
+style.register(globalcss);
 
 export default html`
   <div class="modal-container" name="modalContainer">

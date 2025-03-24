@@ -3,10 +3,6 @@ import callEndIcon from "../icons/callEnd.svg?raw";
 import videoIcon from "../icons/video.svg?raw";
 import microphoneIcon from "../icons/microphone.svg?raw";
 import speakerIcon from "../icons/speaker.svg?raw";
-import controlStyle from "../css/controls.css?inline";
-import { style } from "../Style";
-
-style.register(controlStyle);
 
 export default html`
   <div name="controlsContainer">
