@@ -68,6 +68,16 @@ const config: Config = {
     },
   ],
 
+  // TODO: this part isn't automated yet.
+  // For now, build the embed-widget, and copy
+  // the built js to `/static` here,
+  scripts: [
+    {
+      src: "/widget.js",
+      type: "text/javascript",
+    },
+  ],
+
   themeConfig: {
     image: "img/social-card.jpg",
     navbar: {
