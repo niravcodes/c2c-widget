@@ -138,7 +138,6 @@ export default class C2CWidget extends HTMLElement {
       this.closeModal();
     });
 
-    // todo: this logic should be in the chat ui component
     function onChatChange(chatHistory: ChatEntry[]) {
       createChatUI(chatHistory, chatPanel);
     }
