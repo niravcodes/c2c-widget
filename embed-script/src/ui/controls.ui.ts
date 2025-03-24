@@ -6,7 +6,10 @@ export default async function createControls(
   onHangup?: () => void,
   onVideoDeviceSelect?: (deviceId: string) => void,
   onAudioInputSelect?: (deviceId: string) => void,
-  onAudioOutputSelect?: (deviceId: string) => void
+  onAudioOutputSelect?: (deviceId: string) => void,
+  onToggleVideo?: () => void,
+  onToggleMic?: () => void,
+  onToggleSpeaker?: () => void
 ) {
   const devices = new Devices();
   await devices.setup();
@@ -18,6 +21,9 @@ export default async function createControls(
     micButton,
     speakerButton,
     hangupButton,
+    videoDevicesButton,
+    micDevicesButton,
+    speakerDevicesButton,
   } = controls();
 
   let activeMenu: DeviceMenu | null = null;
@@ -55,16 +61,28 @@ export default async function createControls(
     activeButton = button;
   }
 
-  videoButton.addEventListener("click", () => {
-    handleDeviceButtonClick(videoButton, "videoinput", onVideoDeviceSelect);
+  videoButton.addEventListener("click", () => onToggleVideo?.());
+  micButton.addEventListener("click", () => onToggleMic?.());
+  speakerButton.addEventListener("click", () => onToggleSpeaker?.());
+
+  videoDevicesButton.addEventListener("click", () => {
+    handleDeviceButtonClick(
+      videoDevicesButton,
+      "videoinput",
+      onVideoDeviceSelect
+    );
   });
 
-  micButton.addEventListener("click", () => {
-    handleDeviceButtonClick(micButton, "audioinput", onAudioInputSelect);
+  micDevicesButton.addEventListener("click", () => {
+    handleDeviceButtonClick(micDevicesButton, "audioinput", onAudioInputSelect);
   });
 
-  speakerButton.addEventListener("click", () => {
-    handleDeviceButtonClick(speakerButton, "audiooutput", onAudioOutputSelect);
+  speakerDevicesButton.addEventListener("click", () => {
+    handleDeviceButtonClick(
+      speakerDevicesButton,
+      "audiooutput",
+      onAudioOutputSelect
+    );
   });
 
   hangupButton.addEventListener("click", () => onHangup?.());

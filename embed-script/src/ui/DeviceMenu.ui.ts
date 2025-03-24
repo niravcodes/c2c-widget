@@ -1,5 +1,6 @@
 import html from "../lib/html.ts";
 import { Devices } from "../Devices.ts";
+import checkIcon from "../icons/check.svg?raw";
 
 // This is for popup device selection menu.
 // Beneath all complexity, this just lists Devices.enumerateDevices()
@@ -24,14 +25,28 @@ export default class DeviceMenu {
     const devicesDetails = this.devices.enumerateDevices();
     const deviceList = devicesDetails[this.deviceKind];
 
+    let selectedDevice = null;
+    if (this.deviceKind === "audioinput") {
+      selectedDevice = devicesDetails.selectedMicrophone;
+    } else if (this.deviceKind === "videoinput") {
+      selectedDevice = devicesDetails.selectedCamera;
+    } else if (this.deviceKind === "audiooutput") {
+      selectedDevice = devicesDetails.selectedSpeaker;
+    }
+
     const menu = html`
       <div class="device-menu" name="deviceMenu">
         ${deviceList
           .map(
             (device: MediaDeviceInfo) =>
               `<div class="device-option" data-id="${device.deviceId}">
-              ${device.label ?? `Unnamed ${this.deviceKind} Device`}
-             </div>`
+                ${
+                  device.deviceId === selectedDevice?.deviceId
+                    ? checkIcon
+                    : "<div style='width: 16px'></div>"
+                }
+                ${device.label ?? `Unnamed ${this.deviceKind} Device`}
+              </div>`
           )
           .join("")}
       </div>
