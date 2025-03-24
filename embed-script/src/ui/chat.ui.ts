@@ -1,9 +1,9 @@
 import { ChatEntry } from "../Chat";
-import styles from "../css/chat.css?inline";
+import chatStyle from "../css/chat.css?inline";
 import html from "../lib/html";
 import { style } from "../Style";
 
-style.register(styles);
+style.register(chatStyle);
 
 export default function createChatUI(
   chatHistory: ChatEntry[],
@@ -48,7 +48,8 @@ export default function createChatUI(
 
 // Extremely simple diffing, specifically for chat messages.
 // Assumptions: i. history doesn't change; ii. messages are only added iii. No grand-children.
-// If any might fail, just use a simple dom-diffing library like nanomorph: pls don't push this function beyond what it's currently doing.
+// If any might fail, just use a simple dom-diffing library like nanomorph:
+// please don't push this function beyond what it's currently doing.
 function simple_diff(newdom: HTMLElement, target: HTMLElement) {
   const newChildren = newdom.children;
   const currentChildren = target.children;
