@@ -1,6 +1,12 @@
 import controls from "./controls.html.ts";
 import { Devices } from "../Devices.ts";
 import DeviceMenu from "./DeviceMenu.ui.ts";
+import videoIcon from "../icons/video.svg?raw";
+import videoOffIcon from "../icons/video-off.svg?raw";
+import microphoneIcon from "../icons/microphone.svg?raw";
+import microphoneOffIcon from "../icons/microphone-off.svg?raw";
+import speakerIcon from "../icons/speaker.svg?raw";
+import speakerOffIcon from "../icons/speaker-off.svg?raw";
 
 export default async function createControls(
   onHangup?: () => void,
@@ -26,6 +32,15 @@ export default async function createControls(
     speakerDevicesButton,
   } = controls();
 
+  function updateDeviceIcons() {
+    const { isVideoMuted, isAudioMuted, isSpeakerMuted } =
+      devices.enumerateDevices();
+
+    videoButton.innerHTML = isVideoMuted ? videoOffIcon : videoIcon;
+    micButton.innerHTML = isAudioMuted ? microphoneOffIcon : microphoneIcon;
+    speakerButton.innerHTML = isSpeakerMuted ? speakerOffIcon : speakerIcon;
+  }
+
   let activeMenu: DeviceMenu | null = null;
   let activeButton: HTMLElement | null = null;
 
@@ -35,7 +50,11 @@ export default async function createControls(
       activeMenu.render();
       activeMenu.reposition(rect);
     }
+    updateDeviceIcons();
   };
+
+  // Initial icon states
+  updateDeviceIcons();
 
   function handleDeviceButtonClick(
     button: HTMLElement,
@@ -61,9 +80,21 @@ export default async function createControls(
     activeButton = button;
   }
 
-  videoButton.addEventListener("click", () => onToggleVideo?.());
-  micButton.addEventListener("click", () => onToggleMic?.());
-  speakerButton.addEventListener("click", () => onToggleSpeaker?.());
+  videoButton.addEventListener("click", () => {
+    onToggleVideo?.();
+    devices.toggleVideoMute();
+    updateDeviceIcons();
+  });
+  micButton.addEventListener("click", () => {
+    onToggleMic?.();
+    devices.toggleAudioMute();
+    updateDeviceIcons();
+  });
+  speakerButton.addEventListener("click", () => {
+    onToggleSpeaker?.();
+    devices.toggleSpeakerMute();
+    updateDeviceIcons();
+  });
 
   videoDevicesButton.addEventListener("click", () => {
     handleDeviceButtonClick(
