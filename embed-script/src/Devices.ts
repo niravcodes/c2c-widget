@@ -6,6 +6,9 @@ export class Devices {
   selectedMicrophone: MediaDeviceInfo | null = null;
   selectedCamera: MediaDeviceInfo | null = null;
   selectedSpeaker: MediaDeviceInfo | null = null;
+  isAudioMuted: boolean = false;
+  isVideoMuted: boolean = false;
+  isSpeakerMuted: boolean = false;
 
   // not constructor because we NEED to wait for the user to grant permissions
   async setup() {
@@ -17,7 +20,6 @@ export class Devices {
     const watcher = await WebRTC.createDeviceWatcher();
     watcher.on("changed", async () => {
       await this._enumerate();
-      await this._updateSelectedDevices();
       this.onChange();
     });
 
@@ -83,6 +85,9 @@ export class Devices {
       selectedMicrophone: this.selectedMicrophone,
       selectedCamera: this.selectedCamera,
       selectedSpeaker: this.selectedSpeaker,
+      isAudioMuted: this.isAudioMuted,
+      isVideoMuted: this.isVideoMuted,
+      isSpeakerMuted: this.isSpeakerMuted,
     };
   }
 
@@ -114,6 +119,85 @@ export class Devices {
       this.selectedSpeaker = device;
       this.onChange();
     }
+  }
+
+  private _muteAudio(audioTrack: MediaStreamTrack) {
+    console.log("muting audio via track");
+    audioTrack.enabled = false;
+    this.isAudioMuted = true;
+  }
+
+  private _unmuteAudio(audioTrack: MediaStreamTrack) {
+    console.log("unmuting audio via track");
+    audioTrack.enabled = true;
+    this.isAudioMuted = false;
+  }
+
+  private _muteVideo(videoTrack: MediaStreamTrack) {
+    console.log("muting video via track");
+    videoTrack.enabled = false;
+    this.isVideoMuted = true;
+  }
+
+  private _unmuteVideo(videoTrack: MediaStreamTrack) {
+    console.log("unmuting video via track");
+    videoTrack.enabled = true;
+    this.isVideoMuted = false;
+  }
+
+  toggleAudio(audioTrack: MediaStreamTrack) {
+    if (this.isAudioMuted) {
+      this._unmuteAudio(audioTrack);
+    } else {
+      this._muteAudio(audioTrack);
+    }
+    this.onChange();
+  }
+
+  toggleVideo(videoTrack: MediaStreamTrack) {
+    if (this.isVideoMuted) {
+      this._unmuteVideo(videoTrack);
+    } else {
+      this._muteVideo(videoTrack);
+    }
+    this.onChange();
+  }
+
+  toggleSpeaker() {
+    this.isSpeakerMuted = !this.isSpeakerMuted;
+    this.onChange();
+  }
+
+  muteAudio(audioTrack: MediaStreamTrack) {
+    this._muteAudio(audioTrack);
+    this.onChange();
+  }
+
+  unmuteAudio(audioTrack: MediaStreamTrack) {
+    this._unmuteAudio(audioTrack);
+    this.onChange();
+  }
+
+  muteVideo(videoTrack: MediaStreamTrack) {
+    this._muteVideo(videoTrack);
+    this.onChange();
+  }
+
+  unmuteVideo(videoTrack: MediaStreamTrack) {
+    this._unmuteVideo(videoTrack);
+    this.onChange();
+  }
+
+  // Note: Speaker muting is typically handled by the audio element's volume property
+  // or the browser's audio context gain node, but for now we'll just track the state
+  muteSpeaker() {
+    this.isSpeakerMuted = true;
+    this.onChange();
+  }
+
+  unmuteSpeaker() {
+    this.isSpeakerMuted = false;
+    this.onChange();
   }
 
   // meant to be overridden

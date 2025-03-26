@@ -13,9 +13,18 @@ export default async function createControls(
   onVideoDeviceSelect?: (deviceId: string) => Promise<boolean>,
   onAudioInputSelect?: (deviceId: string) => Promise<boolean>,
   onAudioOutputSelect?: (deviceId: string) => Promise<boolean>,
-  onToggleVideo?: () => void,
-  onToggleMic?: () => void,
-  onToggleSpeaker?: () => void
+  onToggleVideo?: () => Promise<{
+    success: boolean;
+    track?: MediaStreamTrack | null;
+  }>,
+  onToggleMic?: () => Promise<{
+    success: boolean;
+    track?: MediaStreamTrack | null;
+  }>,
+  onToggleSpeaker?: () => Promise<{
+    success: boolean;
+    track?: MediaStreamTrack | null;
+  }>
 ) {
   const devices = new Devices();
   await devices.setup();
@@ -91,19 +100,40 @@ export default async function createControls(
     activeButton = button;
   }
 
-  videoButton.addEventListener("click", () => {
-    onToggleVideo?.();
-    devices.toggleVideoMute();
+  videoButton.addEventListener("click", async () => {
+    const result = await onToggleVideo?.();
+    if (result?.success) {
+    } else {
+      if (result?.track) {
+        devices.toggleVideo(result.track);
+      } else {
+        console.error("No way to toggle video.");
+      }
+    }
     updateDeviceIcons();
   });
-  micButton.addEventListener("click", () => {
-    onToggleMic?.();
-    devices.toggleAudioMute();
+  micButton.addEventListener("click", async () => {
+    const result = await onToggleMic?.();
+    if (result?.success) {
+    } else {
+      if (result?.track) {
+        devices.toggleAudio(result.track);
+      } else {
+        console.error("No way to toggle audio.");
+      }
+    }
     updateDeviceIcons();
   });
-  speakerButton.addEventListener("click", () => {
-    onToggleSpeaker?.();
-    devices.toggleSpeakerMute();
+  speakerButton.addEventListener("click", async () => {
+    const result = await onToggleSpeaker?.();
+    if (result?.success) {
+    } else {
+      if (result?.track) {
+        // devices.toggleSpeaker(result.track);
+      } else {
+        console.error("No way to toggle speaker.");
+      }
+    }
     updateDeviceIcons();
   });
 

@@ -17,6 +17,14 @@ export class Call {
     this.chat = new Chat();
   }
 
+  getLocalVideoTrack() {
+    return this.currentCall?.localVideoTrack;
+  }
+
+  getLocalAudioTrack() {
+    return this.currentCall?.localAudioTrack;
+  }
+
   async setupClient(token: string) {
     this.client = await SignalWire({
       token: token,
@@ -84,6 +92,13 @@ export class Call {
     });
     this.currentCall = currentCallLocal;
 
+    currentCallLocal.on("call.updated", () => {
+      // we want to track mute states
+      // what does the server know about the client's mute states?
+      // we ofc also have a local state
+      console.log("call.updated", currentCallLocal);
+    });
+
     if (this.chat) {
       this.chat.onUpdate = () => {
         onChatChange(this.chat?.getHistory() ?? []);
@@ -145,6 +160,76 @@ export class Call {
       return true;
     } catch (e) {
       console.error("Error updating speaker", e);
+      return false;
+    }
+  }
+
+  private async getSelf() {
+    if (!this.currentCall) {
+      throw new Error("Call is not set. Please dial first.");
+    }
+    const members = await this.currentCall?.getMembers();
+    return members?.members.find((m) => m.id === this.currentCall?.memberId);
+  }
+
+  async toggleVideo() {
+    if (!this.currentCall) {
+      console.error("Call is not set. Please dial first.");
+      return false;
+    }
+    const self = await this.getSelf();
+    try {
+      if (self && self.videoMuted) {
+        await this.currentCall?.videoUnmute();
+      } else {
+        await this.currentCall?.videoMute();
+      }
+    } catch (e) {
+      console.error(
+        e,
+        "Error toggling video with SDK. Falling back to native method."
+      );
+      return false;
+    }
+  }
+
+  async toggleAudio() {
+    if (!this.currentCall) {
+      console.error("Call is not set. Please dial first.");
+      return false;
+    }
+    const self = await this.getSelf();
+    try {
+      if (self && self.audioMuted) {
+        await this.currentCall?.audioUnmute();
+      } else {
+        await this.currentCall?.audioMute();
+      }
+    } catch (e) {
+      console.error(
+        e,
+        "Error toggling audio with SDK. Falling back to native method."
+      );
+      return false;
+    }
+  }
+  async toggleSpeaker() {
+    if (!this.currentCall) {
+      console.error("Call is not set. Please dial first.");
+      return false;
+    }
+    const self = await this.getSelf();
+    try {
+      if (self && self.deaf) {
+        await this.currentCall?.undeaf();
+      } else {
+        await this.currentCall?.deaf();
+      }
+    } catch (e) {
+      console.error(
+        e,
+        "Error toggling speaker with SDK. Falling back to native method."
+      );
       return false;
     }
   }
