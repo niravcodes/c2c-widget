@@ -66,7 +66,7 @@ function simple_diff_old(newdom: HTMLElement, target: HTMLElement) {
       continue;
     }
 
-    currentChild.textContent = newChild.textContent;
+    currentChild.innerHTML = newChild.innerHTML;
     currentChild.className = newChild.className;
   }
 
