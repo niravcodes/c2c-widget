@@ -4,9 +4,9 @@ import DeviceMenu from "./DeviceMenu.ui.ts";
 
 export default async function createControls(
   onHangup?: () => void,
-  onVideoDeviceSelect?: (deviceId: string) => void,
-  onAudioInputSelect?: (deviceId: string) => void,
-  onAudioOutputSelect?: (deviceId: string) => void,
+  onVideoDeviceSelect?: (deviceId: string) => Promise<boolean>,
+  onAudioInputSelect?: (deviceId: string) => Promise<boolean>,
+  onAudioOutputSelect?: (deviceId: string) => Promise<boolean>,
   onToggleVideo?: () => void,
   onToggleMic?: () => void,
   onToggleSpeaker?: () => void
@@ -69,19 +69,38 @@ export default async function createControls(
     handleDeviceButtonClick(
       videoDevicesButton,
       "videoinput",
-      onVideoDeviceSelect
+      async (deviceId) => {
+        const success = await onVideoDeviceSelect?.(deviceId);
+        if (success) {
+          devices.setCamera(deviceId);
+        }
+      }
     );
   });
 
   micDevicesButton.addEventListener("click", () => {
-    handleDeviceButtonClick(micDevicesButton, "audioinput", onAudioInputSelect);
+    handleDeviceButtonClick(
+      micDevicesButton,
+      "audioinput",
+      async (deviceId) => {
+        const success = await onAudioInputSelect?.(deviceId);
+        if (success) {
+          devices.setMicrophone(deviceId);
+        }
+      }
+    );
   });
 
   speakerDevicesButton.addEventListener("click", () => {
     handleDeviceButtonClick(
       speakerDevicesButton,
       "audiooutput",
-      onAudioOutputSelect
+      async (deviceId) => {
+        const success = await onAudioOutputSelect?.(deviceId);
+        if (success) {
+          devices.setSpeaker(deviceId);
+        }
+      }
     );
   });
 

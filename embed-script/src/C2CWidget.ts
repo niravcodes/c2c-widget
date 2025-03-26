@@ -108,20 +108,22 @@ export default class C2CWidget extends HTMLElement {
 
     const control = await createControls(
       () => this.closeModal(),
-      function onVideoDeviceSelect(deviceId: string) {
-        callInstance?.updateCamera({ deviceId });
+      async (deviceId: string) => {
+        const success = await this.call?.updateCamera(deviceId);
+        return success ?? false;
       },
-      function onAudioInputSelect(deviceId: string) {
-        callInstance?.updateMicrophone({ deviceId });
+      async (deviceId: string) => {
+        const success = await this.call?.updateMicrophone(deviceId);
+        return success ?? false;
       },
-      function onAudioOutputSelect(deviceId: string) {
-        callInstance?.updateSpeaker({ deviceId });
+      async (deviceId: string) => {
+        const success = await this.call?.updateSpeaker(deviceId);
+        return success ?? false;
       }
     );
     const callInstance = await this.call?.dial(videoArea, onChatChange);
 
     callInstance?.on("call.joined", () => {
-      console.log("call.joined");
       if (callInstance?.localStream) {
         const { localVideo } = html`<video
           autoplay

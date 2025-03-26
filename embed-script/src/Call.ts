@@ -1,11 +1,15 @@
-import { SignalWire, SignalWireClient } from "@signalwire/js";
+import {
+  FabricRoomSession,
+  SignalWire,
+  SignalWireClient,
+} from "@signalwire/js";
 import { CallDetails } from "./C2CWidget";
 import { Chat, ChatEntry } from "./Chat";
 export class Call {
   private client: SignalWireClient | null = null;
   private callDetails: CallDetails | null = null;
   chat: Chat | null = null;
-  currentCall: Call | null = null;
+  currentCall: FabricRoomSession | null = null;
 
   constructor(callDetails: CallDetails, token: string) {
     this.callDetails = callDetails;
@@ -20,9 +24,7 @@ export class Call {
 
     // @ts-ignore
     this.client.on("ai.partial_result", (params) => {
-      console.log(params);
       // AI partial result (typing indicator)
-      console.log("ai.partial_result", params.text);
       this.chat?.handleEvent(
         "ai.partial_result",
         params.text ?? "",
@@ -32,10 +34,8 @@ export class Call {
 
     // @ts-ignore
     this.client.on("ai.speech_detect", (params) => {
-      console.log(params);
       // AI speech detection (user speaking)
       const cleanText = params.text.replace(/\{confidence=[\d.]+\}/, "");
-      console.log("ai.speech_detect", cleanText);
       this.chat?.handleEvent(
         "ai.speech_detect",
         cleanText,
@@ -45,7 +45,6 @@ export class Call {
 
     // @ts-ignore
     this.client.on("ai.completion", (params) => {
-      console.log(params);
       // AI completion (final response)
       this.chat?.handleEvent(
         "ai.completion",
@@ -56,9 +55,7 @@ export class Call {
 
     // @ts-ignore
     this.client.on("ai.response_utterance", (params) => {
-      console.log(params);
       // AI response utterance (spoken response)
-      console.log("ai.response_utterance", params.utterance);
       this.chat?.handleEvent(
         "ai.response_utterance",
         params.utterance ?? "",
@@ -85,7 +82,6 @@ export class Call {
       video: this.callDetails.supportsVideo,
       negotiateVideo: this.callDetails.supportsVideo,
     });
-    // @ts-expect-error FabricRoomSession missing types
     this.currentCall = currentCallLocal;
 
     if (this.chat) {
@@ -93,8 +89,6 @@ export class Call {
         onChatChange(this.chat?.getHistory() ?? []);
       };
     }
-
-    console.log("currentCall", currentCallLocal);
 
     return currentCallLocal;
   }
@@ -111,5 +105,47 @@ export class Call {
       throw new Error("Call is not set");
     }
     await this.currentCall?.hangup();
+  }
+
+  async updateCamera(deviceId: string): Promise<boolean> {
+    if (!this.currentCall) {
+      console.error("Call is not set. Please dial first.");
+      return false;
+    }
+    try {
+      await this.currentCall?.updateCamera({ deviceId });
+      return true;
+    } catch (e) {
+      console.error("Error updating camera", e);
+      return false;
+    }
+  }
+
+  async updateMicrophone(deviceId: string): Promise<boolean> {
+    if (!this.currentCall) {
+      console.error("Call is not set. Please dial first.");
+      return false;
+    }
+    try {
+      await this.currentCall?.updateMicrophone({ deviceId });
+      return true;
+    } catch (e) {
+      console.error("Error updating microphone", e);
+      return false;
+    }
+  }
+
+  async updateSpeaker(deviceId: string): Promise<boolean> {
+    if (!this.currentCall) {
+      console.error("Call is not set. Please dial first.");
+      return false;
+    }
+    try {
+      await this.currentCall?.updateSpeaker({ deviceId });
+      return true;
+    } catch (e) {
+      console.error("Error updating speaker", e);
+      return false;
+    }
   }
 }

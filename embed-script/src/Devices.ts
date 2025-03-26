@@ -61,36 +61,6 @@ export class Devices {
       null;
   }
 
-  async setMicrophone(deviceId: string) {
-    const device = this.devices.find(
-      (d) => d.deviceId === deviceId && d.kind === "audioinput"
-    );
-    if (device) {
-      this.selectedMicrophone = device;
-      this.onChange();
-    }
-  }
-
-  async setCamera(deviceId: string) {
-    const device = this.devices.find(
-      (d) => d.deviceId === deviceId && d.kind === "videoinput"
-    );
-    if (device) {
-      this.selectedCamera = device;
-      this.onChange();
-    }
-  }
-
-  async setSpeaker(deviceId: string) {
-    const device = this.devices.find(
-      (d) => d.deviceId === deviceId && d.kind === "audiooutput"
-    );
-    if (device) {
-      this.selectedSpeaker = device;
-      this.onChange();
-    }
-  }
-
   enumerateDevices() {
     const audioInputDevices = this.devices.filter(
       (d) => d.kind === "audioinput"
@@ -114,6 +84,36 @@ export class Devices {
       selectedCamera: this.selectedCamera,
       selectedSpeaker: this.selectedSpeaker,
     };
+  }
+
+  setMicrophone(deviceId: string) {
+    const device = this.devices.find(
+      (d) => d.deviceId === deviceId && d.kind === "audioinput"
+    );
+    if (device) {
+      this.selectedMicrophone = device;
+      this.onChange();
+    }
+  }
+
+  setCamera(deviceId: string) {
+    const device = this.devices.find(
+      (d) => d.deviceId === deviceId && d.kind === "videoinput"
+    );
+    if (device) {
+      this.selectedCamera = device;
+      this.onChange();
+    }
+  }
+
+  setSpeaker(deviceId: string) {
+    const device = this.devices.find(
+      (d) => d.deviceId === deviceId && d.kind === "audiooutput"
+    );
+    if (device) {
+      this.selectedSpeaker = device;
+      this.onChange();
+    }
   }
 
   // meant to be overridden
