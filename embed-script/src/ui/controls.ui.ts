@@ -33,12 +33,23 @@ export default async function createControls(
   } = controls();
 
   function updateDeviceIcons() {
-    const { isVideoMuted, isAudioMuted, isSpeakerMuted } =
-      devices.enumerateDevices();
+    const {
+      isVideoMuted,
+      isAudioMuted,
+      isSpeakerMuted,
+      videoinput,
+      audioinput,
+      audiooutput,
+    } = devices.enumerateDevices();
 
     videoButton.innerHTML = isVideoMuted ? videoOffIcon : videoIcon;
     micButton.innerHTML = isAudioMuted ? microphoneOffIcon : microphoneIcon;
     speakerButton.innerHTML = isSpeakerMuted ? speakerOffIcon : speakerIcon;
+
+    videoDevicesButton.style.display = videoinput.length > 0 ? "block" : "none";
+    micDevicesButton.style.display = audioinput.length > 0 ? "block" : "none";
+    speakerDevicesButton.style.display =
+      audiooutput.length > 0 ? "block" : "none";
   }
 
   let activeMenu: DeviceMenu | null = null;
