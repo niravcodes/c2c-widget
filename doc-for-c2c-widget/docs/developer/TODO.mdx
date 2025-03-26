@@ -27,6 +27,8 @@
 3. ~~on mobile, the drop-down for device selection is offset from buttons.~~
 4. Handle errors properly. This includes device errors, connection errors and errors from the Client.
 
+---
+
 25 mar
 
 1. `<c2c-widget>`'s `callDetails` shouldn't be an stringified JSON? It should just be 3 attributes. Why would you ever pass a JSON string?
@@ -36,3 +38,9 @@
 5. clean up stuff correctly on hangup, so the next load is fresh.
 
 6. there's a device timeout if you don't give permission within like 5 seconds. seems to be coming from the SDK. looks incredibly weird.
+
+---
+
+26 mar
+
+1.  Refactor device management code.
