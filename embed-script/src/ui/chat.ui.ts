@@ -29,7 +29,7 @@ export default function createChatUI(
   `();
 
   if (currentRoot.querySelector(".chat") !== null)
-    simple_diff_old(chat, currentRoot.querySelector(".chat")!);
+    simple_diff(chat, currentRoot.querySelector(".chat")!);
   else {
     currentRoot.appendChild(chatContainer);
   }
@@ -45,11 +45,12 @@ export default function createChatUI(
   }
 }
 
+/*
 // Extremely simple diffing, specifically for chat messages.
 // Assumptions: i. history doesn't change; ii. messages are only added iii. No grand-children.
 // If any might fail, just use a simple dom-diffing library like nanomorph:
 // please don't push this function beyond what it's currently doing.
-function simple_diff_old(newdom: HTMLElement, target: HTMLElement) {
+function simple_diff(newdom: HTMLElement, target: HTMLElement) {
   const newChildren = newdom.children;
   const currentChildren = target.children;
 
@@ -74,6 +75,7 @@ function simple_diff_old(newdom: HTMLElement, target: HTMLElement) {
     target.appendChild(newChildren[i].cloneNode(true));
   }
 }
+*/
 
 /*--------------------
  typing effect, this works but ignoring for now because it introduces 2 new bugs:
@@ -81,6 +83,7 @@ function simple_diff_old(newdom: HTMLElement, target: HTMLElement) {
 2. the svg tail is lost because of the rudimentary code
 
 TODO: work on this more later,
+*/
 
 // TODO: We're entering luxury territory from here onwards.
 // To revert to the simpler days, get rid of the opulence below
@@ -95,24 +98,57 @@ function findCommonPrefix(a: string, b: string): number {
   return i;
 }
 
+function shouldScrollToBottom(container: HTMLElement) {
+  const SCROLL_THRESHOLD = 300;
+  return (
+    container.scrollHeight - container.clientHeight <=
+    container.scrollTop + SCROLL_THRESHOLD
+  );
+}
+
 function typeText(
   target: HTMLElement,
   oldText: string,
   newText: string,
   speed = 30
 ) {
+  const chatRoot = target.closest(".chat-container")?.parentElement;
+  if (!chatRoot) return;
+
+  const stickToBottom = shouldScrollToBottom(chatRoot);
+  const tailElement = target.querySelector(".tail");
+
   if (activeTimers.has(target)) {
     clearTimeout(activeTimers.get(target)!);
     activeTimers.delete(target);
   }
 
   const commonLength = findCommonPrefix(oldText, newText);
-  target.textContent = newText.substring(0, commonLength);
+
+  // Create a text node for the message content if it doesn't exist
+  let textNode = Array.from(target.childNodes).find(
+    (node) => node.nodeType === Node.TEXT_NODE
+  ) as Text;
+  if (!textNode) {
+    textNode = document.createTextNode("");
+    target.insertBefore(textNode, tailElement);
+  }
+
+  textNode.textContent = newText.substring(0, commonLength);
 
   let i = commonLength;
   function type() {
     if (i < newText.length) {
-      target.textContent += newText[i++];
+      textNode.textContent = newText.substring(0, i + 1);
+      i++;
+
+      if (stickToBottom) {
+        chatRoot?.scrollTo({
+          top: chatRoot.scrollHeight,
+          behavior: "smooth",
+        });
+      }
+
       const timer = setTimeout(type, speed);
       activeTimers.set(target, timer);
     } else {
@@ -155,4 +191,3 @@ function simple_diff(newdom: HTMLElement, target: HTMLElement) {
     typeText(clone, "", clone.textContent || "");
   }
 }
-*/

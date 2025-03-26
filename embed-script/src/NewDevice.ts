@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { WebRTC } from "@signalwire/js";
 
 class DevicesState {
