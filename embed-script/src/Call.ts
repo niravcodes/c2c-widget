@@ -115,6 +115,19 @@ export class Call {
           name="localVideo"
         ></video>`();
 
+        (localVideo as HTMLVideoElement).onloadedmetadata = () => {
+          console.log(
+            "localVideo.onloadedmetadata",
+            (localVideo as HTMLVideoElement).videoWidth /
+              (localVideo as HTMLVideoElement).videoHeight
+          );
+
+          devices.onAspectRatioChange(
+            (localVideo as HTMLVideoElement).videoWidth /
+              (localVideo as HTMLVideoElement).videoHeight
+          );
+        };
+
         (localVideo as HTMLVideoElement).srcObject =
           currentCallLocal.localStream;
         onLocalVideo(localVideo as HTMLVideoElement);
