@@ -11,6 +11,7 @@
   align-items: center;
   justify-content: center;
   animation: fadeIn 0.3s ease-out forwards;
+  z-index: 1000;
 }
 
 @keyframes fadeIn {
@@ -67,8 +68,8 @@
 .modal {
   position: relative;
   border-radius: 8px;
-  width: 90%;
-  max-width: 1200px;
+  width: 95%;
+  max-width: 2000px;
   max-height: 90vh;
   overflow: hidden;
   animation: springIn 0.8s cubic-bezier(0.22, 1.2, 0.36, 1) forwards;
@@ -128,13 +129,12 @@
   width: min(230px, 30%);
   max-height: 40%;
   overflow: hidden;
-  border-radius: 4px;
-  // background: rgba(0, 0, 0, 0.2);
   z-index: 10;
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
   cursor: pointer;
   transition: transform 0.3s ease;
+  // background: rgba(0, 0, 0, 0.2);
 
   &:hover {
     cursor: alias;
@@ -151,6 +151,7 @@
     transform: translateZ(0) scaleX(-1);
     -webkit-transform: translateZ(0) scaleX(-1);
     transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 12px;
   }
 
   &.flipped video {
@@ -183,7 +184,7 @@
   overflow-y: auto;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 800px) {
   .modal {
     width: calc(100% - 40px);
     height: calc(100% - 40px);
@@ -203,23 +204,17 @@
     position: static;
     width: auto;
   }
+}
 
-  @media (orientation: portrait) {
-    .modal {
-      grid-template-columns: 1fr;
-      grid-template-rows: auto 1fr;
-    }
-  }
-
-  @media (orientation: landscape) {
-    .modal {
-      grid-template-columns: 1fr 250px;
-    }
+@media (max-width: 800px) and (orientation: portrait) {
+  .modal {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
   }
 }
 
-.modal-container:has(.error) {
+@media (max-width: 800px) and (orientation: landscape) {
   .modal {
-    filter: blur(4px);
+    grid-template-columns: 1fr 250px;
   }
 }
