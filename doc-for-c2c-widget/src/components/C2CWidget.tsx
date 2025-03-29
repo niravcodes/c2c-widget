@@ -1,9 +1,25 @@
 import BrowserOnly from "@docusaurus/BrowserOnly";
 import C2CWidgetInternal from "./C2CWidgetInternal";
 import useIsBrowser from "@docusaurus/useIsBrowser";
+import { useState } from "react";
 
-export default function C2CWidget() {
+export default function C2CWidget({
+  destination,
+  supportsVideo,
+  supportsAudio,
+  token,
+  children,
+}: {
+  destination: string;
+  supportsVideo: boolean;
+  supportsAudio: boolean;
+  token: string;
+  children: React.ReactNode;
+}) {
   const isBrowser = useIsBrowser();
+  const [randomId, setRandomId] = useState(
+    Math.random().toString(36).substring(2, 15)
+  );
   if (!isBrowser) {
     return null;
   }
@@ -11,10 +27,22 @@ export default function C2CWidget() {
     <BrowserOnly>
       {() => (
         <>
-          <button id="callButton" className="button button--primary button--lg">
-            Call
+          <button
+            id={`callButton-${randomId}`}
+            className="button button--primary button--lg"
+            style={{
+              margin: "10px 0px",
+            }}
+          >
+            {children}
           </button>
-          <C2CWidgetInternal />
+          <C2CWidgetInternal
+            buttonId={`callButton-${randomId}`}
+            destination={destination}
+            supportsVideo={supportsVideo}
+            supportsAudio={supportsAudio}
+            token={token}
+          />
         </>
       )}
     </BrowserOnly>
