@@ -161,7 +161,7 @@ class Devices {
 
     if (newAspectRatio !== this.state.currentVideoAspectRatio) {
       this.state.currentVideoAspectRatio = newAspectRatio;
-      this.onAspectRatioChange(newAspectRatio);
+      this.onAspectRatioChange(newAspectRatio ? 1 / newAspectRatio : null);
     }
   }
 

@@ -1,3 +1,5 @@
+@use "variables" as *;
+
 .modal-container {
   position: fixed;
   top: 0;
@@ -213,5 +215,11 @@
     .modal {
       grid-template-columns: 1fr 250px;
     }
+  }
+}
+
+.modal-container:has(.error) {
+  .modal {
+    filter: blur(4px);
   }
 }

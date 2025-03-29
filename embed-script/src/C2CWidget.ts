@@ -7,6 +7,7 @@ import createControls from "./ui/controls.ui.ts";
 import { ChatEntry } from "./Chat.ts";
 import createChatUI from "./ui/chat.ui.ts";
 import { style } from "./Style.ts";
+import errorModal from "./ui/errorModal.ui.ts";
 
 export interface CallDetails {
   destination: string;
@@ -104,7 +105,16 @@ export default class C2CWidget extends HTMLElement {
     this.renderLoading(this.callLoading, videoPanel);
     this.containerElement?.appendChild(modalContainer);
 
-    await devices.getPermissions();
+    if (!(await devices.getPermissions())) {
+      console.error("Error getting permissions");
+      const errorModalUI = errorModal(
+        "Permission Error",
+        "Error getting device permissions. Please grant this page access and try again.",
+        () => this.closeModal()
+      );
+      this.modalContainer?.appendChild(errorModalUI);
+      return;
+    }
 
     const callInstance = await this.call.dial(
       videoArea,
@@ -120,7 +130,6 @@ export default class C2CWidget extends HTMLElement {
 
     // Add aspect ratio handler
     devices.onAspectRatioChange = (aspectRatio: number | null) => {
-      console.log("aspectRatio", aspectRatio);
       if (aspectRatio && localVideoArea) {
         localVideoArea.style.aspectRatio = String(aspectRatio);
       }
