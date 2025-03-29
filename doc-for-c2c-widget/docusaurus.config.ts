@@ -10,7 +10,7 @@ const simpleConfig = {
   tagline: "This is the documentation for the C2C Widget.",
 
   ghUser: "niravcodes",
-  ghRepo: "temp-c2c-widget",
+  ghRepo: "c2c-widget",
 
   url: "https://c2c-widget-docs.surge.sh",
   baseUrl: "/",
