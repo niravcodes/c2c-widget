@@ -73,7 +73,7 @@ const config: Config = {
   // the built js to `/static` here,
   scripts: [
     {
-      src: "/widget.js",
+      src: "/c2c-widget.js",
       type: "text/javascript",
     },
   ],

@@ -5,10 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build && cp dist/widget.js ../doc-for-c2c-widget/static/c2c-widget.js",
+    "pushToCDN": "npm run build && scp dist/widget.js swrooms:/root/cdn/c2c-widget.js",
     "preview": "vite preview",
     "deploy": "surge ./dist --domain c2c-widget-demo.surge.sh",
-    "serve": "vite preview --host"
+    "serve": "vite preview --host",
+    "push": "npm run build && npm run pushToCDN && npm run deploy"
   },
   "devDependencies": {
     "sass": "^1.86.0",
