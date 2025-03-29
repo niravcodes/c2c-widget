@@ -30,9 +30,8 @@
   margin-right: 1px;
 }
 
-.control-group
-  .control-button:has(+ .device-select-button[style*="display: none"]) {
-  border-radius: 50%;
+.standalone {
+  border-radius: 50% !important;
   margin-right: 0;
 }
 
@@ -77,10 +76,15 @@
 
 .device-menu {
   position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 8px;
   background: rgba(0, 0, 0, 0.9);
   border-radius: 8px;
   padding: 8px;
   min-width: 200px;
+  z-index: 1000;
 }
 
 .device-option {
@@ -108,4 +112,27 @@
   height: 16px;
   color: #007bff;
   flex-shrink: 0;
+}
+
+.muted-icon,
+.unmuted-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#menuContainer {
+  position: relative;
+}
+
+.device-select-wrapper {
+  position: relative;
+}
+
+.device-button {
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
 }

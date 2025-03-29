@@ -1,37 +1,12 @@
 import controls from "./controls.html.ts";
-import { Devices } from "../Devices.ts";
-import DeviceMenu from "./DeviceMenu.ui.ts";
-import videoIcon from "../icons/video.svg?raw";
-import videoOffIcon from "../icons/video-off.svg?raw";
-import microphoneIcon from "../icons/microphone.svg?raw";
-import microphoneOffIcon from "../icons/microphone-off.svg?raw";
-import speakerIcon from "../icons/speaker.svg?raw";
-import speakerOffIcon from "../icons/speaker-off.svg?raw";
+import devices from "../Devices.ts";
+import checkIcon from "../icons/check.svg?raw";
 
-export default async function createControls(
-  onHangup?: () => void,
-  onVideoDeviceSelect?: (deviceId: string) => Promise<boolean>,
-  onAudioInputSelect?: (deviceId: string) => Promise<boolean>,
-  onAudioOutputSelect?: (deviceId: string) => Promise<boolean>,
-  onToggleVideo?: () => Promise<{
-    success: boolean;
-    track?: MediaStreamTrack | null;
-  }>,
-  onToggleMic?: () => Promise<{
-    success: boolean;
-    track?: MediaStreamTrack | null;
-  }>,
-  onToggleSpeaker?: () => Promise<{
-    success: boolean;
-    track?: MediaStreamTrack | null;
-  }>
-) {
-  const devices = new Devices();
-  await devices.setup();
+export default async function createControls(onHangup?: () => void) {
+  devices.onChange = updateUI;
 
   const {
     controlsContainer,
-    menuContainer,
     videoButton,
     micButton,
     speakerButton,
@@ -39,9 +14,12 @@ export default async function createControls(
     videoDevicesButton,
     micDevicesButton,
     speakerDevicesButton,
+    videoDevicesMenu,
+    micDevicesMenu,
+    speakerDevicesMenu,
   } = controls();
 
-  function updateDeviceIcons() {
+  function updateUI() {
     const {
       isVideoMuted,
       isAudioMuted,
@@ -49,134 +27,121 @@ export default async function createControls(
       videoinput,
       audioinput,
       audiooutput,
-    } = devices.enumerateDevices();
+      selectedCamera,
+      selectedMicrophone,
+      selectedSpeaker,
+    } = devices.state;
 
-    videoButton.innerHTML = isVideoMuted ? videoOffIcon : videoIcon;
-    micButton.innerHTML = isAudioMuted ? microphoneOffIcon : microphoneIcon;
-    speakerButton.innerHTML = isSpeakerMuted ? speakerOffIcon : speakerIcon;
+    function setIconVisibility(button: HTMLElement, isMuted: boolean) {
+      const mutedIcon = button.querySelector(".muted-icon") as HTMLElement;
+      const unmutedIcon = button.querySelector(".unmuted-icon") as HTMLElement;
+      if (mutedIcon && unmutedIcon) {
+        mutedIcon.style.display = isMuted ? "block" : "none";
+        unmutedIcon.style.display = isMuted ? "none" : "block";
+      }
+    }
 
+    // Update mute icons
+    setIconVisibility(videoButton, isVideoMuted);
+    setIconVisibility(micButton, isAudioMuted);
+    setIconVisibility(speakerButton, isSpeakerMuted);
+
+    // Update device buttons visibility and state
     videoDevicesButton.style.display = videoinput.length > 0 ? "block" : "none";
+    (videoDevicesButton as HTMLButtonElement).disabled = isVideoMuted;
+    videoButton.classList.toggle("standalone", videoinput.length === 0);
+
     micDevicesButton.style.display = audioinput.length > 0 ? "block" : "none";
+    (micDevicesButton as HTMLButtonElement).disabled = isAudioMuted;
+    micButton.classList.toggle("standalone", audioinput.length === 0);
+
     speakerDevicesButton.style.display =
       audiooutput.length > 0 ? "block" : "none";
+    (speakerDevicesButton as HTMLButtonElement).disabled = isSpeakerMuted;
+    speakerButton.classList.toggle("standalone", audiooutput.length === 0);
+
+    // Update device menus
+    updateDeviceMenu(videoDevicesMenu, videoinput, selectedCamera, "camera");
+    updateDeviceMenu(
+      micDevicesMenu,
+      audioinput,
+      selectedMicrophone,
+      "microphone"
+    );
+    updateDeviceMenu(
+      speakerDevicesMenu,
+      audiooutput,
+      selectedSpeaker,
+      "speaker"
+    );
   }
 
-  let activeMenu: DeviceMenu | null = null;
-  let activeButton: HTMLElement | null = null;
-
-  devices.onChange = () => {
-    if (activeMenu && activeButton) {
-      const rect = activeButton.getBoundingClientRect();
-      activeMenu.render();
-      activeMenu.reposition(rect);
-    }
-    updateDeviceIcons();
-  };
-
-  // Initial icon states
-  updateDeviceIcons();
-
-  function handleDeviceButtonClick(
-    button: HTMLElement,
-    deviceKind: MediaDeviceKind,
-    callback?: (deviceId: string) => void
+  function updateDeviceMenu(
+    menu: HTMLElement,
+    devices: MediaDeviceInfo[],
+    selected: MediaDeviceInfo | null,
+    type: "camera" | "microphone" | "speaker"
   ) {
-    if (activeButton === button) {
-      activeMenu?.close();
-      activeMenu = null;
-      activeButton = null;
-      return;
-    }
-
-    activeMenu?.close();
-    const rect = button.getBoundingClientRect();
-    activeMenu = new DeviceMenu(
-      menuContainer,
-      deviceKind,
-      devices,
-      rect,
-      callback
-    );
-    activeButton = button;
+    menu.innerHTML = devices
+      .map(
+        (device) => `
+      <div class="device-option ${
+        device.deviceId === selected?.deviceId ? "selected" : ""
+      }" data-device-id="${device.deviceId}">
+        ${device.deviceId === selected?.deviceId ? checkIcon : ""}
+        ${device.label || `${type} ${devices.indexOf(device) + 1}`}
+      </div>
+    `
+      )
+      .join("");
   }
 
-  videoButton.addEventListener("click", async () => {
-    const result = await onToggleVideo?.();
-    if (result?.success) {
-    } else {
-      if (result?.track) {
-        devices.toggleVideo(result.track);
-      } else {
-        console.error("No way to toggle video.");
-      }
-    }
-    updateDeviceIcons();
-  });
-  micButton.addEventListener("click", async () => {
-    const result = await onToggleMic?.();
-    if (result?.success) {
-    } else {
-      if (result?.track) {
-        devices.toggleAudio(result.track);
-      } else {
-        console.error("No way to toggle audio.");
-      }
-    }
-    updateDeviceIcons();
-  });
-  speakerButton.addEventListener("click", async () => {
-    const result = await onToggleSpeaker?.();
-    if (result?.success) {
-    } else {
-      if (result?.track) {
-        // devices.toggleSpeaker(result.track);
-      } else {
-        console.error("No way to toggle speaker.");
-      }
-    }
-    updateDeviceIcons();
-  });
-
-  videoDevicesButton.addEventListener("click", () => {
-    handleDeviceButtonClick(
-      videoDevicesButton,
-      "videoinput",
-      async (deviceId) => {
-        const success = await onVideoDeviceSelect?.(deviceId);
-        if (success) {
-          devices.setCamera(deviceId);
-        }
-      }
-    );
-  });
-
-  micDevicesButton.addEventListener("click", () => {
-    handleDeviceButtonClick(
-      micDevicesButton,
-      "audioinput",
-      async (deviceId) => {
-        const success = await onAudioInputSelect?.(deviceId);
-        if (success) {
-          devices.setMicrophone(deviceId);
-        }
-      }
-    );
-  });
-
-  speakerDevicesButton.addEventListener("click", () => {
-    handleDeviceButtonClick(
-      speakerDevicesButton,
-      "audiooutput",
-      async (deviceId) => {
-        const success = await onAudioOutputSelect?.(deviceId);
-        if (success) {
-          devices.setSpeaker(deviceId);
-        }
-      }
-    );
-  });
-
+  // Toggle handlers
+  videoButton.addEventListener("click", () => devices.toggleVideo());
+  micButton.addEventListener("click", () => devices.toggleAudio());
+  speakerButton.addEventListener("click", () => devices.toggleSpeaker());
   hangupButton.addEventListener("click", () => onHangup?.());
 
+  // Device menu handlers
+  function setupDeviceMenu(
+    button: HTMLElement,
+    menu: HTMLElement,
+    updateFn: (deviceId: string) => Promise<boolean>
+  ) {
+    button.addEventListener("click", (e) => {
+      e.stopPropagation();
+      menu.style.display = menu.style.display === "none" ? "block" : "none";
+    });
+
+    menu.addEventListener("click", async (e) => {
+      const option = (e.target as HTMLElement).closest(".device-option");
+      if (option) {
+        const deviceId = option.getAttribute("data-device-id");
+        if (deviceId) {
+          await updateFn(deviceId);
+          menu.style.display = "none";
+        }
+      }
+    });
+  }
+
+  setupDeviceMenu(videoDevicesButton, videoDevicesMenu, (deviceId) =>
+    devices.updateCamera(deviceId)
+  );
+  setupDeviceMenu(micDevicesButton, micDevicesMenu, (deviceId) =>
+    devices.updateMicrophone(deviceId)
+  );
+  setupDeviceMenu(speakerDevicesButton, speakerDevicesMenu, (deviceId) =>
+    devices.updateSpeaker(deviceId)
+  );
+
+  // Close menus when clicking outside
+  document.addEventListener("click", () => {
+    videoDevicesMenu.style.display = "none";
+    micDevicesMenu.style.display = "none";
+    speakerDevicesMenu.style.display = "none";
+  });
+
+  updateUI(); // Initial UI update
   return controlsContainer;
 }
