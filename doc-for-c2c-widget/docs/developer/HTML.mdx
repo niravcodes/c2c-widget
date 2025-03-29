@@ -34,3 +34,21 @@ it does make the HTML more maintainable and easier to grok.
 Also consider installing [es6-string-html](https://marketplace.visualstudio.com/items?itemName=Tobermory.es6-string-html)
 in VS Code to get syntax highlighting and prettier support for HTML strings inside the html strings.
 :::
+
+:::danger
+Please note that the html tagged template returns a **function**. That function creates the DOM elements and returns the named ones.
+If you directly want the DOM elements:
+
+```ts
+const {root}= html`
+  <div name="root">
+    <h1>Current Viewport width</h1>
+    <div name="dynamicContent">
+    </div>
+  </div>
+`()
+```
+
+Pay extra attention to the `()` at the end of the function call.
+Typescript will catch the error for you, but pay attention nonetheless.
+:::

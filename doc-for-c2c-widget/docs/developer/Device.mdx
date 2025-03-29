@@ -74,3 +74,24 @@ graph TD
     E[C2CWidget] -- hangup command --> F[Call object]
     F[Call object] -- hangup command --> C[FabricRoomSession]
 ```
+
+## The 5 second timeout issue
+
+There's a problem. If the user doesn't allow or deny permissions within 5 seconds, a timeout error is thrown by the SDK.
+It seems to be hardcoded in the signalwire webrtc wrapper for getUserMedia. This is rather annoying for the user, so if it can be removed, it should.
+
+```ts title="@signalwire/webrtc/src/utils/getUserMedia.ts"
+export const getUserMedia = async (
+  constraints: MediaStreamConstraints = { audio: true, video: true }
+) => {
+  try {
+    const promise = getMediaDevicesApi().getUserMedia(constraints)
+    const useTimeout = await _useTimeoutForGUM(constraints)
+    if (useTimeout) {
+      const exception = new Error('Timeout reading from your devices')
+      return await timeoutPromise<MediaStream>(promise, GUM_TIMEOUT, exception)
+    }
+    //...
+  }
+}
+```
