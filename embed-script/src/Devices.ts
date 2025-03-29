@@ -339,7 +339,9 @@ class Devices {
       );
 
       try {
+        // @ts-ignore
         if (this.call.audioEl) {
+          // @ts-ignore
           this.call.audioEl.muted = !this.state.isSpeakerMuted;
           this.state.isSpeakerMuted = !this.state.isSpeakerMuted;
           this.onChange();
