@@ -5,16 +5,18 @@ import {
 } from "@signalwire/js";
 import { CallDetails } from "./C2CWidget";
 import { Chat, ChatEntry } from "./Chat";
+import html from "./lib/html";
+import devices from "./Devices";
 export class Call {
   private client: SignalWireClient | null = null;
   private callDetails: CallDetails | null = null;
   chat: Chat | null = null;
   currentCall: FabricRoomSession | null = null;
+  token: string | null = null;
 
   constructor(callDetails: CallDetails, token: string) {
     this.callDetails = callDetails;
-    this.setupClient(token);
-    this.chat = new Chat();
+    this.token = token;
   }
 
   getLocalVideoTrack() {
@@ -25,13 +27,16 @@ export class Call {
     return this.currentCall?.localAudioTrack;
   }
 
-  async setupClient(token: string) {
-    this.client = await SignalWire({
-      token: token,
+  async setupClient() {
+    if (!this.token) {
+      throw new Error("Token is not set");
+    }
+    const client = await SignalWire({
+      token: this.token,
     });
 
     // @ts-ignore
-    this.client.on("ai.partial_result", (params) => {
+    client.on("ai.partial_result", (params) => {
       // AI partial result (typing indicator)
       this.chat?.handleEvent(
         "ai.partial_result",
@@ -41,7 +46,7 @@ export class Call {
     });
 
     // @ts-ignore
-    this.client.on("ai.speech_detect", (params) => {
+    client.on("ai.speech_detect", (params) => {
       // AI speech detection (user speaking)
       const cleanText = params.text.replace(/\{confidence=[\d.]+\}/, "");
       this.chat?.handleEvent(
@@ -52,7 +57,7 @@ export class Call {
     });
 
     // @ts-ignore
-    this.client.on("ai.completion", (params) => {
+    client.on("ai.completion", (params) => {
       // AI completion (final response)
       this.chat?.handleEvent(
         "ai.completion",
@@ -62,7 +67,7 @@ export class Call {
     });
 
     // @ts-ignore
-    this.client.on("ai.response_utterance", (params) => {
+    client.on("ai.response_utterance", (params) => {
       // AI response utterance (spoken response)
       this.chat?.handleEvent(
         "ai.response_utterance",
@@ -70,20 +75,24 @@ export class Call {
         false // this doesn't have barged yet
       );
     });
+
+    this.client = client;
+    return client;
   }
 
   async dial(
     container: HTMLElement,
-    onChatChange: (chatHistory: ChatEntry[]) => void
+    onChatChange: (chatHistory: ChatEntry[]) => void,
+    onLocalVideo: (localVideo: HTMLVideoElement) => void
   ) {
-    if (!this.client) {
-      throw new Error("Client is not set");
-    }
+    const client = await this.setupClient();
+    this.chat = new Chat();
+
     if (!this.callDetails) {
       throw new Error("Call details are not set");
     }
 
-    const currentCallLocal = await this.client.dial({
+    const currentCallLocal = await client.dial({
       to: this.callDetails.destination,
       rootElement: container,
       audio: this.callDetails.supportsAudio,
@@ -91,6 +100,26 @@ export class Call {
       negotiateVideo: this.callDetails.supportsVideo,
     });
     this.currentCall = currentCallLocal;
+
+    currentCallLocal.on("call.joined", () => {
+      console.log("call.joined", currentCallLocal);
+      // @ts-ignore
+      window.call = currentCallLocal;
+      if (currentCallLocal?.localStream) {
+        devices.updateVideoAspectRatio();
+        console.log(currentCallLocal.localStream);
+        const { localVideo } = html`<video
+          autoplay
+          playsinline
+          muted
+          name="localVideo"
+        ></video>`();
+
+        (localVideo as HTMLVideoElement).srcObject =
+          currentCallLocal.localStream;
+        onLocalVideo(localVideo as HTMLVideoElement);
+      }
+    });
 
     currentCallLocal.on("call.updated", () => {
       // we want to track mute states
@@ -122,115 +151,21 @@ export class Call {
     await this.currentCall?.hangup();
   }
 
-  async updateCamera(deviceId: string): Promise<boolean> {
-    if (!this.currentCall) {
-      console.error("Call is not set. Please dial first.");
-      return false;
-    }
-    try {
-      await this.currentCall?.updateCamera({ deviceId });
-      return true;
-    } catch (e) {
-      console.error("Error updating camera", e);
-      return false;
-    }
-  }
+  reset() {
+    if (this.client) {
+      // @ts-ignore
+      this.client.off("ai.partial_result");
+      // @ts-ignore
+      this.client.off("ai.speech_detect");
+      // @ts-ignore
+      this.client.off("ai.completion");
+      // @ts-ignore
+      this.client.off("ai.response_utterance");
 
-  async updateMicrophone(deviceId: string): Promise<boolean> {
-    if (!this.currentCall) {
-      console.error("Call is not set. Please dial first.");
-      return false;
+      this.client.disconnect();
     }
-    try {
-      await this.currentCall?.updateMicrophone({ deviceId });
-      return true;
-    } catch (e) {
-      console.error("Error updating microphone", e);
-      return false;
-    }
-  }
-
-  async updateSpeaker(deviceId: string): Promise<boolean> {
-    if (!this.currentCall) {
-      console.error("Call is not set. Please dial first.");
-      return false;
-    }
-    try {
-      await this.currentCall?.updateSpeaker({ deviceId });
-      return true;
-    } catch (e) {
-      console.error("Error updating speaker", e);
-      return false;
-    }
-  }
-
-  private async getSelf() {
-    if (!this.currentCall) {
-      throw new Error("Call is not set. Please dial first.");
-    }
-    const members = await this.currentCall?.getMembers();
-    return members?.members.find((m) => m.id === this.currentCall?.memberId);
-  }
-
-  async toggleVideo() {
-    if (!this.currentCall) {
-      console.error("Call is not set. Please dial first.");
-      return false;
-    }
-    const self = await this.getSelf();
-    try {
-      if (self && self.videoMuted) {
-        await this.currentCall?.videoUnmute();
-      } else {
-        await this.currentCall?.videoMute();
-      }
-    } catch (e) {
-      console.error(
-        e,
-        "Error toggling video with SDK. Falling back to native method."
-      );
-      return false;
-    }
-  }
-
-  async toggleAudio() {
-    if (!this.currentCall) {
-      console.error("Call is not set. Please dial first.");
-      return false;
-    }
-    const self = await this.getSelf();
-    try {
-      if (self && self.audioMuted) {
-        await this.currentCall?.audioUnmute();
-      } else {
-        await this.currentCall?.audioMute();
-      }
-    } catch (e) {
-      console.error(
-        e,
-        "Error toggling audio with SDK. Falling back to native method."
-      );
-      return false;
-    }
-  }
-  async toggleSpeaker() {
-    if (!this.currentCall) {
-      console.error("Call is not set. Please dial first.");
-      return false;
-    }
-    const self = await this.getSelf();
-    try {
-      if (self && self.deaf) {
-        await this.currentCall?.undeaf();
-      } else {
-        await this.currentCall?.deaf();
-      }
-    } catch (e) {
-      console.error(
-        e,
-        "Error toggling speaker with SDK. Falling back to native method."
-      );
-      return false;
-    }
+    this.currentCall = null;
+    this.client = null;
+    this.chat = null;
   }
 }

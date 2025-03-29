@@ -2,8 +2,8 @@ import modal from "./ui/modal.ui.ts";
 import loadingUI from "./ui/loading.html.ts";
 import { Call } from "./Call.ts";
 
+import devices from "./Devices.ts";
 import createControls from "./ui/controls.ui.ts";
-import html from "./lib/html.ts";
 import { ChatEntry } from "./Chat.ts";
 import createChatUI from "./ui/chat.ui.ts";
 import { style } from "./Style.ts";
@@ -59,11 +59,6 @@ export default class C2CWidget extends HTMLElement {
     }
   }
 
-  private openModal() {
-    this.previousOverflowStyle = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-  }
-
   private closeModal() {
     if (this.modalContainer) {
       const modal = this.modalContainer.querySelector(".modal");
@@ -71,11 +66,12 @@ export default class C2CWidget extends HTMLElement {
       modal?.classList.add("closing");
 
       setTimeout(() => {
+        devices.reset();
         this.modalContainer?.remove();
         this.modalContainer = null;
         document.body.style.overflow = this.previousOverflowStyle;
         this.callOngoing = false;
-        this.call?.hangup();
+        this.call?.reset();
       }, 800);
     }
   }
@@ -84,14 +80,16 @@ export default class C2CWidget extends HTMLElement {
     if (this.callOngoing) {
       console.warn("Call is already ongoing; nop");
       return;
-    } else if (this.callDetails === null) {
-      console.warn("No call details provided");
+    } else if (this.callDetails === null || this.call === null) {
+      console.warn("No call or Call details provided");
       return;
     }
 
     this.callOngoing = true;
     this.callLoading = true;
-    this.openModal();
+
+    this.previousOverflowStyle = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
 
     const {
       modalContainer,
@@ -106,72 +104,40 @@ export default class C2CWidget extends HTMLElement {
     this.renderLoading(this.callLoading, videoPanel);
     this.containerElement?.appendChild(modalContainer);
 
-    const control = await createControls(
-      () => this.closeModal(),
-      async (deviceId: string) => {
-        // onVideoDeviceSelect
-        const success = await this.call?.updateCamera(deviceId);
-        return success ?? false;
-      },
-      async (deviceId: string) => {
-        // onAudioInputSelect
-        const success = await this.call?.updateMicrophone(deviceId);
-        return success ?? false;
-      },
-      async (deviceId: string) => {
-        // onAudioOutputSelect
-        const success = await this.call?.updateSpeaker(deviceId);
-        return success ?? false;
-      },
-      async () => {
-        // onToggleVideo
-        const success = await this.call?.toggleVideo();
-        return {
-          success: success ?? false,
-          track: this.call?.getLocalVideoTrack(),
-        };
-      },
-      async () => {
-        // onToggleMic
-        const success = await this.call?.toggleAudio();
-        return {
-          success: success ?? false,
-          track: this.call?.getLocalAudioTrack(),
-        };
-      },
-      async () => {
-        // onToggleSpeaker
-        const success = await this.call?.toggleSpeaker();
-        //todo
-        return {
-          success: success ?? false,
-          track: this.call?.getLocalAudioTrack(),
-        };
-      }
-    );
-    const callInstance = await this.call?.dial(videoArea, onChatChange);
+    await devices.getPermissions();
 
-    callInstance?.on("call.joined", () => {
-      console.log("call.joined", callInstance);
-      if (callInstance?.localStream) {
-        const { localVideo } = html`<video
-          autoplay
-          muted
-          style="width: 100%; height: 100%;"
-          name="localVideo"
-        ></video>`();
-        (localVideo as HTMLVideoElement).srcObject = callInstance.localStream;
+    const callInstance = await this.call.dial(
+      videoArea,
+      function (chatHistory: ChatEntry[]) {
+        createChatUI(chatHistory, chatPanel);
+      },
+      function (localVideo: HTMLElement) {
         localVideoArea.appendChild(localVideo);
       }
+    );
+
+    await devices.setup(callInstance);
+
+    // Add aspect ratio handler
+    devices.onAspectRatioChange = (aspectRatio: number | null) => {
+      console.log("aspectRatio", aspectRatio);
+      if (aspectRatio && localVideoArea) {
+        localVideoArea.style.aspectRatio = String(aspectRatio);
+      }
+    };
+
+    const control = await createControls(async () => {
+      try {
+        await this.call?.hangup();
+      } catch (e) {
+        console.error("Error hanging up call. Force terminating call.", e);
+      }
+      this.closeModal();
     });
 
     callInstance?.on("room.left", () => {
       this.closeModal();
     });
-
-    function onChatChange(chatHistory: ChatEntry[]) {
-      createChatUI(chatHistory, chatPanel);
-    }
 
     controlsPanel.appendChild(control);
 
