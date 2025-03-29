@@ -8,6 +8,7 @@ import { ChatEntry } from "./Chat.ts";
 import createChatUI from "./ui/chat.ui.ts";
 import { style } from "./Style.ts";
 import errorModal from "./ui/errorModal.ui.ts";
+import { FabricRoomSession } from "@signalwire/js";
 
 export interface CallDetails {
   destination: string;
@@ -36,11 +37,33 @@ export default class C2CWidget extends HTMLElement {
     this.token = token;
     const buttonId = this.getAttribute("buttonId");
     if (buttonId) {
+      const setupButton = (button: HTMLElement) => {
+        button.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log("Starting Call");
+          this.setupCall();
+        });
+      };
+
       const button = document.getElementById(buttonId);
       if (button) {
-        button.addEventListener("click", () => this.setupCall());
+        setupButton(button);
       } else {
-        console.error(`Button with ID "${buttonId}" not found.`);
+        // the button might be injected AFTER the widget is connected
+        // so we need to watch for it
+        const observer = new MutationObserver((_mutations, obs) => {
+          const button = document.getElementById(buttonId);
+          if (button) {
+            setupButton(button);
+            obs.disconnect();
+          }
+        });
+
+        observer.observe(document.body, {
+          childList: true,
+          subtree: true,
+        });
       }
     }
 
@@ -105,33 +128,50 @@ export default class C2CWidget extends HTMLElement {
     this.renderLoading(this.callLoading, videoPanel);
     this.containerElement?.appendChild(modalContainer);
 
-    if (!(await devices.getPermissions())) {
+    const permissionResult = await devices.getPermissions(
+      this.callDetails?.supportsVideo ?? false
+    );
+    if (!permissionResult.success) {
       console.error("Error getting permissions");
       const errorModalUI = errorModal(
-        "Permission Error",
-        "Error getting device permissions. Please grant this page access and try again.",
+        "Error Accessing Devices",
+        permissionResult.message ||
+          "Error getting device permissions. Please grant this page access and try again.",
         () => this.closeModal()
       );
       this.modalContainer?.appendChild(errorModalUI);
       return;
     }
 
-    const callInstance = await this.call.dial(
-      videoArea,
-      function (chatHistory: ChatEntry[]) {
-        createChatUI(chatHistory, chatPanel);
-      },
-      function (localVideo: HTMLElement) {
-        localVideoArea.appendChild(localVideo);
-      }
-    );
+    let callInstance: FabricRoomSession | null = null;
+
+    try {
+      callInstance = await this.call.dial(
+        videoArea,
+        function (chatHistory: ChatEntry[]) {
+          createChatUI(chatHistory, chatPanel);
+        },
+        function (localVideo: HTMLElement) {
+          localVideoArea.appendChild(localVideo);
+        }
+      );
+    } catch (e) {
+      console.error("Error setting up call", e);
+      const errorModalUI = errorModal(
+        "Error",
+        "Error creating the call. Please refresh the page and try again.",
+        () => this.closeModal()
+      );
+      this.modalContainer?.appendChild(errorModalUI);
+      return;
+    }
 
     await devices.setup(callInstance);
 
     // Add aspect ratio handler
     devices.onAspectRatioChange = (aspectRatio: number | null) => {
       if (aspectRatio && localVideoArea) {
-        localVideoArea.style.aspectRatio = String(aspectRatio);
+        localVideoArea.style.aspectRatio = `${aspectRatio}`;
       }
     };
 
@@ -150,7 +190,19 @@ export default class C2CWidget extends HTMLElement {
 
     controlsPanel.appendChild(control);
 
-    await this.call?.start();
+    try {
+      await this.call?.start();
+    } catch (e) {
+      console.error("Error starting call", e);
+      const errorModalUI = errorModal(
+        "Error",
+        "Error starting the call. This is possibly due to network issues. Please refresh the page and try again.",
+        () => this.closeModal()
+      );
+      this.modalContainer?.appendChild(errorModalUI);
+      return;
+    }
+
     this.callLoading = false;
     this.renderLoading(this.callLoading, videoPanel);
   }
