@@ -52,10 +52,16 @@ class Devices {
         audio: true,
         video,
       });
-      return true;
+      return { success: true };
     } catch (error) {
       console.error("Error getting permissions:", error);
-      return false;
+      return {
+        success: false,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to get device permissions",
+      };
     }
   }
 
@@ -159,9 +165,12 @@ class Devices {
         ? settings.width / settings.height
         : null);
 
+    // turns out, this aspect ratio reported by videoTrack.getSettings is not accurate (for phones, sensor aspect ratio is reported rather than the actual stream aspect ratio)
+    // so we need to kind of bypass this function in `Call` class when the video metadata loads. Sorry for the hack.
+
     if (newAspectRatio !== this.state.currentVideoAspectRatio) {
       this.state.currentVideoAspectRatio = newAspectRatio;
-      this.onAspectRatioChange(newAspectRatio ? 1 / newAspectRatio : null);
+      this.onAspectRatioChange(newAspectRatio ? newAspectRatio : null);
     }
   }
 
