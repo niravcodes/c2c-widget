@@ -12,6 +12,10 @@ export default function modalUI() {
     videoPanelBackground,
   } = modal();
 
+  localVideoArea.addEventListener("click", () => {
+    localVideoArea.classList.toggle("flipped");
+  });
+
   const imageMaker = html`<img
     name="image"
     src="https://developer.signalwire.com/img/call-widget/sw_background.webp"
@@ -19,17 +23,25 @@ export default function modalUI() {
 
   const { image } = imageMaker();
 
-  (image as HTMLImageElement)
-    .decode()
-    .then(() => {
-      videoPanelBackground.classList.add("loaded");
-      videoPanelBackground.style.backgroundImage = `url(${
-        (image as HTMLImageElement).src
-      })`;
-    })
-    .catch((err) => {
-      console.error("Image failed to decode", err);
-    });
+  const loadImage = () => {
+    videoPanelBackground.classList.add("loaded");
+    videoPanelBackground.style.backgroundImage = `url(${
+      (image as HTMLImageElement).src
+    })`;
+  };
+
+  if ("decode" in image) {
+    (image as HTMLImageElement)
+      .decode()
+      .then(loadImage)
+      .catch(() => {
+        // Fallback if decode fails
+        loadImage();
+      });
+  } else {
+    // Fallback for browsers that don't support decode()
+    image.onload = loadImage;
+  }
 
   return {
     modalContainer,
