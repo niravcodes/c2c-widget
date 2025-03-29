@@ -13,7 +13,7 @@
     "write-translations": "docusaurus write-translations",
     "write-heading-ids": "docusaurus write-heading-ids",
     "typecheck": "tsc",
-    "build:c2cWidget": "npm run build --prefix ../embed-script && cp ../embed-script/dist/widget.js ./static/js/c2c-widget.js"
+    "build:c2cWidget": "npm run build --prefix ../embed-script && cp ../embed-script/dist/widget.js ./static/c2c-widget.js"
   },
   "dependencies": {
     "@docusaurus/core": "3.4.0",
