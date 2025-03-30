@@ -7,13 +7,15 @@
     "dev": "vite",
     "build": "tsc && vite build && cp dist/widget.js ../doc-for-c2c-widget/static/c2c-widget.js",
     "pushToCDN": "npm run build && scp dist/widget.js swrooms:/root/cdn/c2c-widget.js",
+    "pushToCDN:dev": "npm run build && scp dist/c2c-widget-dev.js dist/c2c-widget-dev.js.map swrooms:/root/cdn/",
     "preview": "vite preview",
     "deploy": "surge ./dist --domain c2c-widget-demo.surge.sh",
     "serve": "vite preview --host",
-    "push": "npm run build && npm run pushToCDN && npm run deploy"
+    "push": "npm run build && npm run pushToCDN && npm run pushToCDN:dev && npm run deploy"
   },
   "devDependencies": {
     "sass": "^1.86.0",
+    "terser": "^5.39.0",
     "typescript": "~5.7.2",
     "vite": "^6.2.0"
   },

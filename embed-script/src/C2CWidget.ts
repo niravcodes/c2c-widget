@@ -38,6 +38,9 @@ export default class C2CWidget extends HTMLElement {
     const buttonId = this.getAttribute("buttonId");
     if (buttonId) {
       const setupButton = (button: HTMLElement) => {
+        if (button.classList.contains("demo-button-disabled")) {
+          button.classList.remove("demo-button-disabled");
+        }
         button.addEventListener("click", (e) => {
           e.preventDefault();
           e.stopPropagation();
